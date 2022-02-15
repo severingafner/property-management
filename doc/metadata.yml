@@ -1,0 +1,22 @@
+---
+title: Liegenschaftsverwaltung
+subtitle: Semesterarbeit System und Softwareengineering HF 2019-2022
+author:
+  - Severin Gafner
+date: "15.02.2022"
+rights:  Creative Commons Attribution 4.0 International
+#lang: de
+
+bibliography: bibliography.bib
+
+titlepage: true
+titlepage-color: "06386e" 
+titlepage-text-color: "FFFFFF"
+titlepage-rule-color: "FFFFFF"
+titlepage-rule-height: 2
+toc-own-page: true
+listings-disable-line-numbers: true
+
+# Eisvogel configuration
+graphics: true
+---
