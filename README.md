@@ -1,1 +1,1 @@
-# property-panagement
+# property-management
