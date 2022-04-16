@@ -16,9 +16,15 @@ export default function Navbar(props: NavbarProps) {
       <>
       <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar>
-          <Typography variant="h6" noWrap component="div">
-            {props.title}
-          </Typography>
+          <List>
+            <NextLink href='/' passHref>
+              <ListItem button component={Link}>
+                <Typography  color="inherit" variant="h6" noWrap component="div">
+                  {props.title}
+                </Typography>
+              </ListItem>
+            </NextLink>
+          </List>
         </Toolbar>
       </AppBar>
       <Drawer
