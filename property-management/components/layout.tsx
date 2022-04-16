@@ -2,7 +2,7 @@ import Navbar, { NavbarProps } from './navbar'
 import PersonIcon from '@mui/icons-material/Person';
 import OtherHousesIcon from '@mui/icons-material/OtherHouses';
 import ApartmentIcon from '@mui/icons-material/Apartment';
-import { Box } from '@mui/material';
+import { Box, Toolbar } from '@mui/material';
 interface LayoutProps {
     children: React.ReactNode;
  }
@@ -31,7 +31,7 @@ export default function Layout({ children }: LayoutProps) {
     <>
       <Box sx={{ display: 'flex' }}>
         <Navbar title={navbar.title} items={navbar.items}/>
-        <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+        <Box component="main" sx={{ flexGrow: 1, p: 3, mt: '64px' }}>
           <main>{children}</main>
         </Box>
       </Box>
