@@ -1,49 +1,49 @@
 const httpStatus = require('http-status');
-const Contract = require('../models/contract.model');
+const Property = require('../models/property.model');
 const ApiError = require('../utils/ApiError');
 
-const createContract = async (contractBody) => {
-  const contract = await Contract.create(contractBody);
-  return contract;
+const createProperty = async (propertyBody) => {
+  const property = await Property.create(propertyBody);
+  return property;
 };
 
-const getContractById = async (id) => {
-  return Contract.findById(id);
+const getPropertyById = async (id) => {
+  return Property.findById(id);
 };
 
-const queryContracts = async (filter, options) => {
-  const contract = await Contract.paginate(filter, options);
-  return contract;
+const queryPropertys = async (filter, options) => {
+  const property = await Property.paginate(filter, options);
+  return property;
 };
 
-const updateContract = async (contract, updateBody) => {
-  Object.assign(contract, updateBody);
-  await contract.save();
-  return contract;
+const updateProperty = async (property, updateBody) => {
+  Object.assign(property, updateBody);
+  await property.save();
+  return property;
 };
 
-const updateContractById = async (id, updateBody) => {
-  let contract = await getContractById(id);
-  if (!contract) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Contract not found');
+const updatePropertyById = async (id, updateBody) => {
+  let property = await getPropertyById(id);
+  if (!property) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Property not found');
   }
-  contract = await updateContract(contract, updateBody);
-  return contract;
+  property = await updateProperty(property, updateBody);
+  return property;
 };
 
-const deleteContractById = async (id) => {
-  const contract = await getContractById(id);
-  if (!contract) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Contract not found');
+const deletePropertyById = async (id) => {
+  const property = await getPropertyById(id);
+  if (!property) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Property not found');
   }
-  await contract.remove();
-  return contract;
+  await property.remove();
+  return property;
 };
 
 module.exports = {
-  queryContracts,
-  getContractById,
-  createContract,
-  updateContractById,
-  deleteContractById,
+  queryPropertys,
+  getPropertyById,
+  createProperty,
+  updatePropertyById,
+  deletePropertyById,
 };
