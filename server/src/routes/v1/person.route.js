@@ -12,8 +12,8 @@ router
 
 router
   .route('/:personId')
-  .get(personValidation.getPerson)
-  .patch(personValidation.updatePerson)
-  .delete(personValidation.deletePerson);
+  .get(personController.getPerson)
+  .patch(personController.updatePerson)
+  .delete(personController.deletePerson);
 
 module.exports = router;
