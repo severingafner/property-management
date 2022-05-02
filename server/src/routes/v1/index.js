@@ -1,12 +1,17 @@
 const express = require('express');
 const docsRoute = require('./docs.route');
 const config = require('../../config/config');
+const billRoute = require('./bill.route');
 const personRoute = require('./person.route');
 const creditorRoute = require('./creditor.route');
 
 const router = express.Router();
 
 const defaultRoutes = [
+  {
+    path: '/bill',
+    route: billRoute,
+  },
   {
     path: '/person',
     route: personRoute,
