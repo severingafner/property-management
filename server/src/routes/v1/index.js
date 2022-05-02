@@ -5,6 +5,7 @@ const billRoute = require('./bill.route');
 const contractRoute = require('./contract.route');
 const creditorRoute = require('./creditor.route');
 const personRoute = require('./person.route');
+const propertyRoute = require('./property.route');
 
 const router = express.Router();
 
@@ -24,6 +25,10 @@ const defaultRoutes = [
   {
     path: '/person',
     route: personRoute,
+  },
+  {
+    path: '/property',
+    route: propertyRoute,
   },
 ];
 
