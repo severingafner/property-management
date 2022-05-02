@@ -2,6 +2,7 @@ const express = require('express');
 const docsRoute = require('./docs.route');
 const config = require('../../config/config');
 const personRoute = require('./person.route');
+const creditorRoute = require('./creditor.route');
 
 const router = express.Router();
 
@@ -9,6 +10,10 @@ const defaultRoutes = [
   {
     path: '/person',
     route: personRoute,
+  },
+  {
+    path: '/creditor',
+    route: creditorRoute,
   },
 ];
 
