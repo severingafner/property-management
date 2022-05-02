@@ -1,0 +1,987 @@
+From 62d780f39bdb6b32f6808e5bcb4b3d4da82b7449 Mon Sep 17 00:00:00 2001
+From: Chetan Mittal <mittalchetan98@gmail.com>
+Date: Sun, 21 Nov 2021 23:45:39 +0530
+Subject: [PATCH] Google OAuth (#21)
+
+* Google OAuth (#22)
+
+* add google strategy
+
+* bug fixes, working
+
+* reset isEmailVerified when email updated
+
+* fix resposnsive UI pages with buttons
+
+* merge accounts with same email on oauth, set email verified
+
+* fix oauth server
+
+* add google icon
+
+* clean passport config
+
+* update documentation, api docs
+
+* update readme for email verification
+
+* update version 3.1.0
+
+* update deploy guide for heroku google oauth
+---
+ DEPLOY.md                                     | 23 ++++++++-
+ README.md                                     | 14 +++++
+ SETUP.md                                      | 20 ++++++--
+ client/package-lock.json                      |  2 +-
+ client/package.json                           |  2 +-
+ client/src/components/Forms/GithubAuthForm.js |  2 +-
+ client/src/components/Forms/GoogleAuthForm.js | 30 +++++++++++
+ client/src/components/Tables/TeamTable.js     |  2 +-
+ client/src/context/AuthContext.js             |  5 ++
+ client/src/icons/google.svg                   |  1 +
+ client/src/icons/index.js                     |  2 +
+ client/src/pages/CreateAccount.js             |  2 +
+ client/src/pages/Login.js                     |  2 +
+ client/src/pages/TeamDetails.js               |  6 +--
+ client/src/pages/Teams.js                     |  6 +--
+ client/src/pages/Users.js                     |  6 +--
+ server/.env.example                           |  6 +++
+ server/package-lock.json                      | 49 +++++++++++++++---
+ server/package.json                           |  5 +-
+ server/src/app.js                             |  5 +-
+ server/src/config/config.js                   |  6 +++
+ server/src/config/passport.js                 | 46 ++++++++++++++---
+ server/src/controllers/auth.controller.js     |  4 +-
+ server/src/controllers/user.controller.js     | 14 ++++-
+ server/src/middlewares/oauth.js               | 24 ++++++---
+ server/src/models/user.model.js               | 12 ++++-
+ server/src/routes/v1/auth.route.js            | 51 ++++++++++++++++++-
+ server/src/services/user.service.js           | 39 ++++++++++----
+ server/src/validations/auth.validation.js     |  5 --
+ 29 files changed, 328 insertions(+), 63 deletions(-)
+ create mode 100644 client/src/components/Forms/GoogleAuthForm.js
+ create mode 100644 client/src/icons/google.svg
+
+diff --git a/DEPLOY.md b/DEPLOY.md
+index bba879f..5f930b8 100644
+--- a/DEPLOY.md
++++ b/DEPLOY.md
+@@ -89,6 +89,16 @@ Stripe webhook forwarding:
+ - Update *Authorization Callback URL*: "{your-domain-name}/v1/auth/github/callback".
+ - Click **Update application**.
+ 
++(optional) Google Oauth:
++- Go to [Google Cloud Console](https://console.cloud.google.com/home/dashboard).
++- Select your project from the dropdown.
++- Then click on **APIs & Services** in the sidebar and select **Credentials** tab.
++- Click on the edit button beside your OAuth 2.0 Client ID.
++- Application Type: Web Application.
++- Update *Authorized Javascript origins*: "{your-domain-name}".
++- Update *Authorized redirect URI*: "{your-domain-name}/v1/auth/google/callback".
++- Click **Save**.
++
+ Congratulations! You have successfully deployed you SaaS app. Navigate to your domain and start using the app!
+ 
+ ## Deploy using Heroku and Vercel
+@@ -161,8 +171,19 @@ Stripe webhook forwarding:
+ - Go to [Github Account Settings](https://github.com/settings/profile).
+ - Select **Developer settings** from the sidebar.
+ - Then click on **OAuth Apps** and then select your registered application.
+-- Update the *Homepage URL* to your domain name.
++- Update *Homepage URL*: "{Heroku server URL}".
+ - Update *Authorization Callback URL*: "{Heroku server URL}/v1/auth/github/callback".
+ - Click **Update application**.
+ 
++(optional) Google Oauth:
++- Go to [Google Cloud Console](https://console.cloud.google.com/home/dashboard).
++- Select your project from the dropdown.
++- Then click on **APIs & Services** in the sidebar and select **Credentials** tab.
++- Click on the edit button beside your OAuth 2.0 Client ID.
++- Application Type: Web Application.
++- Update *Authorized Javascript origins*: "{Heroku server URL}".
++- Update *Authorized redirect URI*: "{Heroku server URL}/v1/auth/google/callback".
++- Click **Save**.
++- Update the google strategy in passport config file (`server/src/config/passport.js`) : update googleOptions and set callbackURL: "{Heroku server URL}/v1/auth/google/callback"
++
+ Congratulations! You have successfully deployed you SaaS app. Open the Vercel client URL and start using the app!
+diff --git a/README.md b/README.md
+index 3c456f8..fe04216 100644
+--- a/README.md
++++ b/README.md
+@@ -85,6 +85,12 @@ GITHUB_ID=github-id
+ # GITHUB secret key
+ GITHUB_SECRET=thisisasamplesecret
+ 
++# Google
++# Google Id
++GOOGLE_ID=github-id
++# Google secret key
++GOOGLE_SECRET=thisisasamplesecret
++
+ # SMTP configuration options for the email service
+ # For testing, you can use a fake SMTP service like Ethereal: https://ethereal.email/create
+ SMTP_HOST=email-server
+@@ -161,6 +167,8 @@ List of available routes:
+ `POST /v1/auth/login` - login\
+ `GET /v1/auth/github` - github authentication\
+ `GET /v1/auth/github/callback` - github authentication callback\
++`GET /v1/auth/google` - google authentication\
++`GET /v1/auth/google/callback` - google authentication callback\
+ `POST /v1/auth/refresh-tokens` - refresh auth tokens\
+ `POST /v1/auth/forgot-password` - send reset password email\
+ `POST /v1/auth/reset-password` - reset password\
+@@ -285,6 +293,12 @@ After the access token expires, a new access token can be generated, by making a
+ 
+ A refresh token is valid for 30 days. You can modify this expiration time by changing the `JWT_REFRESH_EXPIRATION_DAYS` environment variable in the .env file.
+ 
++### Email Verification
++
++A field `isEmailVerified` exists in the user model, which maintais whether the user has verified their email. When a new user signs up, an email is sent for verification, once verified, `isEmailVerified` is set to true. When the email of a user is updated (either through the profile section or by an admin), `isEmailVerified` is again set to false and a verification email is sent.
++
++**IMPORTANT** : With social authentication, `isEmailVerified` is set to true by default. if the email provided by the social OAuth is already taken by some user, that user is merged to have these OAuth credentials and `isEmailVerified` is set to true. Now this might be problematic, since a different user might have taken the email address and we might not want to merge it with the social account. One way to handle this is to only allow users with verified emails.
++
+ ## Authorization
+ 
+ The `auth` middleware can also be used to require certain rights/permissions to access a route.
+diff --git a/SETUP.md b/SETUP.md
+index e4e9d62..d8b8bb9 100644
+--- a/SETUP.md
++++ b/SETUP.md
+@@ -56,13 +56,27 @@ Before you can start building new app idea, you'll need to set up a few things f
+ - Click **Register application**
+ - Now copy and save *Client ID* and *Client Secret* keys somewhere safe for now.
+ 
+-5. Install Rocket Server :
++5. (Optional) Create a Google app for Oauth Authentication :
++- To use the Google OAuth authentication methods, you will need to obtain appropriate credentials: Client ID, Client Secret.
++- Go to [Google Cloud Console](https://console.cloud.google.com/home/dashboard)
++- Select **Create Project** button
++- Then click on **APIs & Services** in the sidebar and select API tab
++- Click on Create Credentials then OAuth Client ID
++- Click on configure consent screen and complete the process
++- In the scopes section, make sure to select email, profile and openid
++- Again, under APIs & Services in the sidebar click on Credentials tab then Create Credentials then OAuth Client ID
++- Application Type: Web Application
++- *Authorized Javascript origins*: http://localhost:8080
++- *Authorized redirect URI*: http://localhost:8080/v1/auth/google/callback
++- Now copy and save *Client ID* and *Client Secret* keys somewhere safe for now.
++
++6. Install Rocket Server :
+ 	- Open up a new terminal window and navigate to the server folder inside the Rocket directory and run the following command: "npm install"
+ 	- Copy the .env.example file to .env using: "cp .env.example .env"
+-	- Open the .env file, enter your MongoDB URL in the MONGODB_URL_TEST and the MONGODB_URL field, enter your Stripe Secret Key in the STRIPE_SECRET_TEST field. (Optional) Enter your Github Client Id in the GITHUB_ID field and your Github Client Secret in the GITHUB_SECRET field.
++	- Open the .env file, enter your MongoDB URL in the MONGODB_URL_TEST and the MONGODB_URL field, enter your Stripe Secret Key in the STRIPE_SECRET_TEST field. (Optional) Enter your Github Client Id in the GITHUB_ID field and your Github Client Secret in the GITHUB_SECRET field. (Optional) Enter your Google Client Id in the GOOGLE_ID field and your Google Client Secret in the GOOGLE_SECRET field.
+ 	- In the terminal, run "yarn dev" to start the development server : This will start the Rocket development server.
+ 
+-6. Stripe webhook forwarding : 
++7. Stripe webhook forwarding : 
+ 	- Install the Stripe CLI : https://stripe.com/docs/stripe-cli#install
+ 	- Login with your Stripe account : After installing the Stripe CLI, you must pair it with your Stripe account. To do so, run "stripe login" in the terminal. You’ll be prompted to launch your browser and login to the Stripe Dashboard to grant the Stripe CLI access to your account.
+ 	- Run the following command in the terminal : stripe listen --forward-to localhost:8080/v1/stripe/stripe-webhook
+diff --git a/client/package-lock.json b/client/package-lock.json
+index 2061819..92c1eea 100644
+--- a/client/package-lock.json
++++ b/client/package-lock.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "Rocket",
+-  "version": "3.0.0",
++  "version": "3.1.0",
+   "lockfileVersion": 1,
+   "requires": true,
+   "dependencies": {
+diff --git a/client/package.json b/client/package.json
+index 8824372..8a847ad 100644
+--- a/client/package.json
++++ b/client/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "Rocket",
+-  "version": "3.0.0",
++  "version": "3.1.0",
+   "description": "Rocket SaaS Boilerplate",
+   "private": true,
+   "scripts": {
+diff --git a/client/src/components/Forms/GithubAuthForm.js b/client/src/components/Forms/GithubAuthForm.js
+index 5f1e242..e881a94 100644
+--- a/client/src/components/Forms/GithubAuthForm.js
++++ b/client/src/components/Forms/GithubAuthForm.js
+@@ -20,7 +20,7 @@ function GithubAuthForm() {
+         <GithubIcon className="w-4 h-4 mr-2" aria-hidden="true" />
+         Github
+       </Button>
+-      {query.get('OAuthRedirect') && (
++      {query.get('OAuthRedirect') === 'github' && (
+         <HelperText valid={false}>Github Authentication Failed. Please try again.</HelperText>
+       )}
+     </>
+diff --git a/client/src/components/Forms/GoogleAuthForm.js b/client/src/components/Forms/GoogleAuthForm.js
+new file mode 100644
+index 0000000..2eb03ba
+--- /dev/null
++++ b/client/src/components/Forms/GoogleAuthForm.js
+@@ -0,0 +1,30 @@
++import React, { useState, useContext } from 'react'
++import { AuthContext } from '../../context/AuthContext'
++import { Button, HelperText } from '@windmill/react-ui'
++import { GoogleIcon } from '../../icons'
++import useQuery from '../../utils/useQuery'
++
++function GoogleAuthForm() {
++  const query = useQuery()
++  const { googleAuth } = useContext(AuthContext)
++  const [isSubmitting, setSubmitting] = useState(false)
++
++  const onSubmit= () => {
++    setSubmitting(true)
++    googleAuth()
++  }
++
++  return (
++    <>  
++      <Button block layout="outline" className="mt-4" disabled={isSubmitting} onClick={(e) => {e.preventDefault(); onSubmit()}}>
++        <GoogleIcon className="w-4 h-4 mr-2" aria-hidden="true" />
++        Google
++      </Button>
++      {query.get('OAuthRedirect') === 'google' && (
++        <HelperText valid={false}>Google Authentication Failed. Please try again.</HelperText>
++      )}
++    </>
++  )
++}
++
++export default GoogleAuthForm
+\ No newline at end of file
+diff --git a/client/src/components/Tables/TeamTable.js b/client/src/components/Tables/TeamTable.js
+index 42cb173..5de0959 100644
+--- a/client/src/components/Tables/TeamTable.js
++++ b/client/src/components/Tables/TeamTable.js
+@@ -70,7 +70,7 @@ export default function TeamTable({user, onAction}) {
+   return (
+     <>
+       <TableContainer className="mb-8">
+-        <Table className="table-fixed w-full">
++        <Table>
+           <Header />
+           <Body activeTeam={user.activeTeam} dataTable={user.teams} onAction={onAction} />
+         </Table>
+diff --git a/client/src/context/AuthContext.js b/client/src/context/AuthContext.js
+index 05f1046..181b9af 100644
+--- a/client/src/context/AuthContext.js
++++ b/client/src/context/AuthContext.js
+@@ -120,6 +120,10 @@ export const AuthProvider = ({ children }) => {
+         window.location.href = `${apiUrl}/v1/auth/github`;
+       }
+ 
++      const googleAuth = () => {
++        window.location.href = `${apiUrl}/v1/auth/google`;
++      }
++
+       const logout = () => {
+         setAccessToken(null)
+         setUser(null)
+@@ -152,6 +156,7 @@ export const AuthProvider = ({ children }) => {
+         register,
+         login,
+         githubAuth,
++        googleAuth,
+         logout,
+         forgotPassword,
+         resetPassword,
+diff --git a/client/src/icons/google.svg b/client/src/icons/google.svg
+new file mode 100644
+index 0000000..c0669b3
+--- /dev/null
++++ b/client/src/icons/google.svg
+@@ -0,0 +1 @@
++<svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 48 48" width="48px" height="48px"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
+\ No newline at end of file
+diff --git a/client/src/icons/index.js b/client/src/icons/index.js
+index 13a6450..5e0908c 100644
+--- a/client/src/icons/index.js
++++ b/client/src/icons/index.js
+@@ -11,6 +11,7 @@ import { ReactComponent as EditIcon } from './edit.svg'
+ import { ReactComponent as TrashIcon } from './trash.svg'
+ import { ReactComponent as ForbiddenIcon } from './forbidden.svg'
+ import { ReactComponent as GithubIcon } from './github.svg'
++import { ReactComponent as GoogleIcon } from './google.svg'
+ import { ReactComponent as TwitterIcon } from './twitter.svg'
+ import { ReactComponent as MailIcon } from './mail.svg'
+ import { ReactComponent as CartIcon } from './cart.svg'
+@@ -41,6 +42,7 @@ export {
+   TrashIcon,
+   ForbiddenIcon,
+   GithubIcon,
++  GoogleIcon,
+   TwitterIcon,
+   MailIcon,
+   CartIcon,
+diff --git a/client/src/pages/CreateAccount.js b/client/src/pages/CreateAccount.js
+index cab3619..5518b8d 100644
+--- a/client/src/pages/CreateAccount.js
++++ b/client/src/pages/CreateAccount.js
+@@ -5,6 +5,7 @@ import ImageLight from '../assets/img/create-account-office.jpeg'
+ import ImageDark from '../assets/img/create-account-office-dark.jpeg'
+ import CreateAccountForm from '../components/Forms/CreateAccountForm'
+ import GithubAuthForm from '../components/Forms/GithubAuthForm'
++import GoogleAuthForm from '../components/Forms/GoogleAuthForm'
+ 
+ function CreateAccount() {
+   return (
+@@ -40,6 +41,7 @@ function CreateAccount() {
+                 <hr className="my-8" />
+ 
+                 <GithubAuthForm />
++                <GoogleAuthForm />
+                 
+                 <p className="mt-4">
+                   <Link
+diff --git a/client/src/pages/Login.js b/client/src/pages/Login.js
+index 7655596..afba224 100644
+--- a/client/src/pages/Login.js
++++ b/client/src/pages/Login.js
+@@ -5,6 +5,7 @@ import ImageLight from '../assets/img/login-office.jpeg'
+ import ImageDark from '../assets/img/login-office-dark.jpeg'
+ import LoginForm from '../components/Forms/LoginForm'
+ import GithubAuthForm from '../components/Forms/GithubAuthForm'
++import GoogleAuthForm from '../components/Forms/GoogleAuthForm'
+ 
+ function Login() {
+   return (
+@@ -38,6 +39,7 @@ function Login() {
+                 <hr className="my-8" />
+ 
+                 <GithubAuthForm />
++                <GoogleAuthForm />
+                 
+                 <p className="mt-4">
+                   <Link
+diff --git a/client/src/pages/TeamDetails.js b/client/src/pages/TeamDetails.js
+index a3d6c43..86d77d5 100644
+--- a/client/src/pages/TeamDetails.js
++++ b/client/src/pages/TeamDetails.js
+@@ -187,14 +187,14 @@ function TeamDetails() {
+ 
+   return (
+     <>
+-      <div className="flex flex-wrap justify-between">
++      <div className="flex flex-col pb-6 sm:pb-0 sm:flex-row justify-between sm:items-center">
+         <PageTitle>{team.name}</PageTitle>
+-        <div className="mb-4 sm:my-6">
++        <div className="flex gap-4">
+           {role && (role === 'teamOwner' || role === 'teamAdmin') &&
+             <Button onClick={(e) => {e.preventDefault(); setShowEditTeamForm(!showEditTeamForm)}}>Edit Team</Button>
+           }
+           {role && (role === 'teamUser' || role === 'teamAdmin') &&
+-            <Button className='ml-4' layout="outline" onClick={(e) => {e.preventDefault(); handleAction(null, 'leaveTeam')}}>Leave Team</Button>
++            <Button layout="outline" onClick={(e) => {e.preventDefault(); handleAction(null, 'leaveTeam')}}>Leave Team</Button>
+           }
+         </div>
+       </div>
+diff --git a/client/src/pages/Teams.js b/client/src/pages/Teams.js
+index 44dd5f0..a28b6ea 100644
+--- a/client/src/pages/Teams.js
++++ b/client/src/pages/Teams.js
+@@ -70,11 +70,9 @@ function Teams() {
+ 
+   return (
+     <>
+-      <div className="flex flex-wrap justify-between">
++      <div className="flex flex-col pb-6 sm:pb-0 sm:flex-row justify-between sm:items-center">
+         <PageTitle>Teams</PageTitle>
+-        <div className="my-6">
+-          <Button onClick={(e) => {e.preventDefault(); setShowCreateTeamForm(!showCreateTeamForm)}}>Create Team</Button>
+-        </div>
++        <Button onClick={(e) => {e.preventDefault(); setShowCreateTeamForm(!showCreateTeamForm)}}>Create Team</Button>
+       </div>
+ 
+       {showCreateTeamForm && 
+diff --git a/client/src/pages/Users.js b/client/src/pages/Users.js
+index e44afb1..e91d0ea 100644
+--- a/client/src/pages/Users.js
++++ b/client/src/pages/Users.js
+@@ -153,11 +153,9 @@ function Users() {
+ 
+   return (
+     <>
+-      <div className="flex flex-wrap justify-between">
++      <div className="flex flex-col pb-6 sm:pb-0 sm:flex-row justify-between sm:items-center">
+         <PageTitle>All Users</PageTitle>
+-        <div className="my-6">
+-          <Button onClick={(e) => {e.preventDefault(); handleAction(null, 'createUser')}}>Create User</Button>
+-        </div>
++        <Button onClick={(e) => {e.preventDefault(); handleAction(null, 'createUser')}}>Create User</Button>
+       </div>
+       <UserTable users={users} resultsPerPage={config.users.resultsPerPage} totalResults={totalResults} onAction={handleAction} onPageChange={handlePageChange} />
+       <CreateUserModal isOpen={showCreateModal} onClose={onModalClose} onAction={onModalAction}/>
+diff --git a/server/.env.example b/server/.env.example
+index 38ed79f..f8d3ddc 100644
+--- a/server/.env.example
++++ b/server/.env.example
+@@ -22,6 +22,12 @@ GITHUB_ID=github-id
+ # GITHUB secret key
+ GITHUB_SECRET=thisisasamplesecret
+ 
++# Google
++# Google Id
++GOOGLE_ID=github-id
++# Google secret key
++GOOGLE_SECRET=thisisasamplesecret
++
+ # SMTP configuration options for the email service
+ # For testing, you can use a fake SMTP service like Ethereal: https://ethereal.email/create
+ SMTP_HOST=email-server
+diff --git a/server/package-lock.json b/server/package-lock.json
+index 393c2f9..b7786b1 100644
+--- a/server/package-lock.json
++++ b/server/package-lock.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "Rocket",
+-  "version": "3.0.0",
++  "version": "3.1.0",
+   "lockfileVersion": 1,
+   "requires": true,
+   "dependencies": {
+@@ -1699,9 +1699,9 @@
+       }
+     },
+     "asn1": {
+-      "version": "0.2.4",
+-      "resolved": "https://registry.npmjs.org/asn1/-/asn1-0.2.4.tgz",
+-      "integrity": "sha512-jxwzQpLQjSmWXgwaCZE9Nz+glAG01yF1QnWgbhGwHI5A6FRIEY6IVqtHhIepHqI7/kyEyQEagBC5mBEFlIYvdg==",
++      "version": "0.2.6",
++      "resolved": "https://registry.npmjs.org/asn1/-/asn1-0.2.6.tgz",
++      "integrity": "sha512-ix/FxPn0MDjeyJ7i/yoHGFt/EX6LyNbxSEhPPXODPL+KB0VPk86UYfL0lMdy+KCnv+fmvIzySwaK5COwqVbWTQ==",
+       "dev": true,
+       "requires": {
+         "safer-buffer": "~2.1.0"
+@@ -2543,9 +2543,9 @@
+       }
+     },
+     "coveralls": {
+-      "version": "3.1.0",
+-      "resolved": "https://registry.npmjs.org/coveralls/-/coveralls-3.1.0.tgz",
+-      "integrity": "sha512-sHxOu2ELzW8/NC1UP5XVLbZDzO4S3VxfFye3XYCznopHy02YjNkHcj5bKaVw2O7hVaBdBjEdQGpie4II1mWhuQ==",
++      "version": "3.1.1",
++      "resolved": "https://registry.npmjs.org/coveralls/-/coveralls-3.1.1.tgz",
++      "integrity": "sha512-+dxnG2NHncSD1NrqbSM3dn/lE57O6Qf/koe9+I7c+wzkqRmEvcp0kgJdxKInzYzkICKkFMZsX3Vct3++tsF9ww==",
+       "dev": true,
+       "requires": {
+         "js-yaml": "^3.13.1",
+@@ -6294,6 +6294,31 @@
+         "passport-oauth2": "1.x.x"
+       }
+     },
++    "passport-google-oauth": {
++      "version": "2.0.0",
++      "resolved": "https://registry.npmjs.org/passport-google-oauth/-/passport-google-oauth-2.0.0.tgz",
++      "integrity": "sha512-JKxZpBx6wBQXX1/a1s7VmdBgwOugohH+IxCy84aPTZNq/iIPX6u7Mqov1zY7MKRz3niFPol0KJz8zPLBoHKtYA==",
++      "requires": {
++        "passport-google-oauth1": "1.x.x",
++        "passport-google-oauth20": "2.x.x"
++      }
++    },
++    "passport-google-oauth1": {
++      "version": "1.0.0",
++      "resolved": "https://registry.npmjs.org/passport-google-oauth1/-/passport-google-oauth1-1.0.0.tgz",
++      "integrity": "sha1-r3SoA99R7GRvZqRNgigr5vEI4Mw=",
++      "requires": {
++        "passport-oauth1": "1.x.x"
++      }
++    },
++    "passport-google-oauth20": {
++      "version": "2.0.0",
++      "resolved": "https://registry.npmjs.org/passport-google-oauth20/-/passport-google-oauth20-2.0.0.tgz",
++      "integrity": "sha512-KSk6IJ15RoxuGq7D1UKK/8qKhNfzbLeLrG3gkLZ7p4A6DBCcv7xpyQwuXtWdpyR0+E0mwkpjY1VfPOhxQrKzdQ==",
++      "requires": {
++        "passport-oauth2": "1.x.x"
++      }
++    },
+     "passport-jwt": {
+       "version": "4.0.0",
+       "resolved": "https://registry.npmjs.org/passport-jwt/-/passport-jwt-4.0.0.tgz",
+@@ -6327,6 +6352,16 @@
+         }
+       }
+     },
++    "passport-oauth1": {
++      "version": "1.2.0",
++      "resolved": "https://registry.npmjs.org/passport-oauth1/-/passport-oauth1-1.2.0.tgz",
++      "integrity": "sha512-Sv2YWodC6jN12M/OXwmR4BIXeeIHjjbwYTQw4kS6tHK4zYzSEpxBgSJJnknBjICA5cj0ju3FSnG1XmHgIhYnLg==",
++      "requires": {
++        "oauth": "0.9.x",
++        "passport-strategy": "1.x.x",
++        "utils-merge": "1.x.x"
++      }
++    },
+     "passport-oauth2": {
+       "version": "1.6.1",
+       "resolved": "https://registry.npmjs.org/passport-oauth2/-/passport-oauth2-1.6.1.tgz",
+diff --git a/server/package.json b/server/package.json
+index 35319f7..a0999c8 100644
+--- a/server/package.json
++++ b/server/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "Rocket",
+-  "version": "3.0.0",
++  "version": "3.1.0",
+   "description": "Rocket SaaS Boilerplate",
+   "main": "src/index.js",
+   "author": "Chetan Mittal",
+@@ -65,6 +65,7 @@
+     "nodemailer": "^6.3.1",
+     "passport": "^0.4.0",
+     "passport-github2": "^0.1.12",
++    "passport-google-oauth": "^2.0.0",
+     "passport-jwt": "^4.0.0",
+     "pm2": "^5.1.0",
+     "stripe": "^8.136.0",
+@@ -75,7 +76,7 @@
+     "xss-clean": "^0.1.1"
+   },
+   "devDependencies": {
+-    "coveralls": "^3.0.7",
++    "coveralls": "^3.1.1",
+     "eslint": "^7.0.0",
+     "eslint-config-airbnb-base": "^14.0.0",
+     "eslint-config-prettier": "^7.1.0",
+diff --git a/server/src/app.js b/server/src/app.js
+index 86f2902..0698d0b 100644
+--- a/server/src/app.js
++++ b/server/src/app.js
+@@ -9,7 +9,7 @@ const passport = require('passport');
+ const httpStatus = require('http-status');
+ const config = require('./config/config');
+ const morgan = require('./config/morgan');
+-const { jwtStrategy, githubStrategy } = require('./config/passport');
++const { jwtStrategy, githubStrategy, googleStrategy } = require('./config/passport');
+ const { authLimiter } = require('./middlewares/rateLimiter');
+ const routes = require('./routes/v1');
+ const { errorConverter, errorHandler } = require('./middlewares/error');
+@@ -53,6 +53,9 @@ passport.use('jwt', jwtStrategy);
+ if(githubStrategy) {
+ 	passport.use('github', githubStrategy);
+ }
++if(googleStrategy) {
++	passport.use('google', googleStrategy);
++}
+ 
+ // limit repeated failed requests to auth endpoints
+ if (config.env === 'production') {
+diff --git a/server/src/config/config.js b/server/src/config/config.js
+index 97c5210..3cdf6b9 100644
+--- a/server/src/config/config.js
++++ b/server/src/config/config.js
+@@ -16,6 +16,8 @@ const envVarsSchema = Joi.object()
+     JWT_REFRESH_EXPIRATION_DAYS: Joi.number().default(30).description('days after which refresh tokens expire'),
+     GITHUB_ID: Joi.string().description('Github Id'),
+     GITHUB_SECRET: Joi.string().description('Github secret key'),
++    GOOGLE_ID: Joi.string().description('Google Id'),
++    GOOGLE_SECRET: Joi.string().description('Google secret key'),
+     SMTP_HOST: Joi.string().description('server that will send the emails'),
+     SMTP_PORT: Joi.number().description('port to connect to the email server'),
+     SMTP_USERNAME: Joi.string().description('username for email server'),
+@@ -53,6 +55,10 @@ module.exports = {
+     id: envVars.GITHUB_ID,
+     secret: envVars.GITHUB_SECRET,
+   },
++  google: {
++    id: envVars.GOOGLE_ID,
++    secret: envVars.GOOGLE_SECRET,
++  },
+   email: {
+     smtp: {
+       host: envVars.SMTP_HOST,
+diff --git a/server/src/config/passport.js b/server/src/config/passport.js
+index 8d74da5..d61ef01 100644
+--- a/server/src/config/passport.js
++++ b/server/src/config/passport.js
+@@ -1,9 +1,9 @@
+ const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
+ const { Strategy: GitHubStrategy } = require('passport-github2');
++const { OAuth2Strategy: GoogleStrategy } = require('passport-google-oauth');
+ const config = require('./config');
+ const logger = require('./logger');
+ const { tokenTypes } = require('./tokens');
+-const { User } = require('../models');
+ const { userService } = require('../services');
+ const randomString = require('../utils/randomString');
+ 
+@@ -18,7 +18,7 @@ const jwtVerify = async (payload, done) => {
+     if (payload.type !== tokenTypes.ACCESS) {
+       throw new Error('Invalid token type');
+     }
+-    const user = await User.findById(payload.sub);
++    const user = await userService.getUserById(payload.sub);
+     if (!user) {
+       return done(null, false);
+     }
+@@ -40,17 +40,14 @@ const githubOptions = {
+ 
+ const githubVerify = async (req, accessToken, refreshToken, profile, done) => {
+   try {
+-    let user = await User.findOne({ githubId: profile.id });
+-    if(user) {
+-      return done(null, user);
+-    }
+     const userBody = {
+       name: profile.displayName,
+-      email: profile._json.email,
++      email: profile.emails[0].value,
++      isEmailVerified: true,
+       githubId: profile.id,
+       password: 'a1' + randomString(30),
+     };
+-    user = await userService.createUserWithStripe(userBody);
++    const user = await userService.getOrCreateUserWithOAuth('github', userBody);
+     done(null, user);
+   } catch (error) {
+     done(error, false);
+@@ -64,7 +61,40 @@ try {
+   logger.warn('Unable to create Github Strategy for auth. Make sure the Github Id and secret are set.');
+ }
+ 
++//Google Strategy
++const googleOptions = {
++  clientID: config.google.id,
++  clientSecret: config.google.secret,
++  passReqToCallback: true,
++  callbackURL: '/v1/auth/google/callback',
++  scope: ['profile', 'email']
++};
++
++const googleVerify = async (req, accessToken, refreshToken, params, profile, done) => {
++  try {
++    const userBody = {
++      name: profile.displayName,
++      email: profile.emails[0].value,
++      isEmailVerified: true,
++      googleId: profile.id,
++      password: 'a1' + randomString(30),
++    };
++    const user = await userService.getOrCreateUserWithOAuth('google', userBody);
++    done(null, user);
++  } catch (error) {
++    done(error, false);
++  }
++};
++
++let googleStrategy;
++try {
++  googleStrategy = new GoogleStrategy(googleOptions, googleVerify);
++} catch (error) {
++  logger.warn('Unable to create Google Strategy for auth. Make sure the Google Id and secret are set.');
++}
++
+ module.exports = {
+   jwtStrategy,
+   githubStrategy,
++  googleStrategy,
+ };
+diff --git a/server/src/controllers/auth.controller.js b/server/src/controllers/auth.controller.js
+index ba19b79..4c73cdb 100644
+--- a/server/src/controllers/auth.controller.js
++++ b/server/src/controllers/auth.controller.js
+@@ -26,7 +26,7 @@ const login = catchAsync(async (req, res) => {
+   res.cookie('refreshToken', tokens.refresh.token, { maxAge: tokens.refresh.maxAge, httpOnly: true, sameSite: 'none', secure: true }).send({ user, token:tokens.access });
+ });
+ 
+-const github = catchAsync(async (req, res) => {
++const oauth = catchAsync(async (req, res) => {
+   const user = req.user;
+   const tokens = await tokenService.generateAuthTokens(user);
+   res.cookie('refreshToken', tokens.refresh.token, { maxAge: tokens.refresh.maxAge, httpOnly: true, sameSite: 'none', secure: true }).redirect(`${config.clientURL}/app`);
+@@ -61,7 +61,7 @@ const emailVerification = catchAsync(async (req, res) => {
+ module.exports = {
+   register,
+   login,
+-  github,
++  oauth,
+   logout,
+   refreshTokens,
+   forgotPassword,
+diff --git a/server/src/controllers/user.controller.js b/server/src/controllers/user.controller.js
+index 633b500..a824f3b 100644
+--- a/server/src/controllers/user.controller.js
++++ b/server/src/controllers/user.controller.js
+@@ -2,8 +2,9 @@ const httpStatus = require('http-status');
+ const pick = require('../utils/pick');
+ const ApiError = require('../utils/ApiError');
+ const catchAsync = require('../utils/catchAsync');
++const logger = require('../config/logger');
+ const { User } = require('../models');
+-const { userService, teamService, stripeService } = require('../services');
++const { userService, teamService, tokenService, stripeService } = require('../services');
+ 
+ const createUser = catchAsync(async (req, res) => {
+   const user = await userService.createUserWithStripe(req.body);
+@@ -32,11 +33,22 @@ const updateUser = catchAsync(async (req, res) => {
+   }
+   const name = req.body.name || userOld.name;
+   const email = req.body.email || userOld.email;
++  if (req.body.email) {
++    req.body.isEmailVerified = false;
++  }
+   const user = await userService.updateUser(userOld, req.body);
+   for (const team of user.teams) {
+     await teamService.updateUserById(team.id, user.id, {name: user.name, email: user.email});
+   }
+   await stripeService.updateCustomer(userOld.stripeId, name, email);
++  if (req.body.email) {
++    try{
++      const emailVerificationToken = await tokenService.generateEmailVerificationToken(user);
++      await emailService.sendEmailVerificationEmail(req.body.email, emailVerificationToken);  
++    } catch (error) {
++      logger.warn('Unable to send verification email. Make sure that the email server is connected');
++    }
++  }
+   res.send(user);
+ });
+ 
+diff --git a/server/src/middlewares/oauth.js b/server/src/middlewares/oauth.js
+index 1f84ad4..b850d46 100644
+--- a/server/src/middlewares/oauth.js
++++ b/server/src/middlewares/oauth.js
+@@ -2,17 +2,28 @@ const passport = require('passport');
+ const url = require('url'); 
+ const config = require('../config/config');
+ const logger = require('../config/logger');
+-const { githubStrategy } = require('../config/passport');
++const { githubStrategy, googleStrategy } = require('../config/passport');
++
++const strategyExists = (strategy) => {
++  let oauthStrategy;
++  switch (strategy) {
++    case 'github' : oauthStrategy = githubStrategy; break;
++    case 'google' : oauthStrategy = googleStrategy; break;
++    default : oauthStrategy = null;
++  }
++  return !!oauthStrategy;
++}
+ 
+ const verifyCallback = (req, resolve, reject) => async (err, user, info) => {
+   if (err || !user) {
++    logger.warn(err);
+     return reject(new Error('Authentication Failed'));
+   }
+   req.user = user;
+   resolve();
+ };
+ 
+-const oauth = async (req, res, next) => {
++const oauth = (strategy) => async (req, res, next) => {
+   let redirectURL = req.header('Referer');
+   if(redirectURL) {
+     redirectURL = redirectURL.split("?").shift();
+@@ -26,19 +37,20 @@ const oauth = async (req, res, next) => {
+   logger.info('Referer URL: ' + redirectURL);
+ 
+   return new Promise((resolve, reject) => {
+-    if(githubStrategy) {
+-      passport.authenticate('github', { session: false, state: JSON.stringify({url: redirectURL}) }, verifyCallback(req, resolve, reject))(req, res, next);
++    if (!strategyExists(strategy)) {
++      reject(new Error(`${strategy} strategy does not exist`));
+     } else {
+-      reject(new Error('Github Strategy does not exist'));
++      passport.authenticate(strategy, { session: false, state: JSON.stringify({url: redirectURL}) }, verifyCallback(req, resolve, reject))(req, res, next);
+     }
+   })
+     .then(() => next())
+     .catch((err) => {
++      logger.warn(err);
+       res.redirect(
+         url.format({
+           pathname: redirectURL,
+           query: {
+-            OAuthRedirect : true,
++            OAuthRedirect : strategy,
+           }
+         }
+       ));
+diff --git a/server/src/models/user.model.js b/server/src/models/user.model.js
+index a849d9f..feae27e 100644
+--- a/server/src/models/user.model.js
++++ b/server/src/models/user.model.js
+@@ -30,7 +30,17 @@ const userSchema = mongoose.Schema(
+       index: {
+         unique: true,
+         partialFilterExpression: {githubId: {$type: "string"}}
+-      }
++      },
++    },
++    googleId: {
++      type: String,
++      required: false,
++      unique: true,
++      trim: true,
++      index: {
++        unique: true,
++        partialFilterExpression: {googleId: {$type: "string"}}
++      },
+     },
+     isEmailVerified: {
+       type: Boolean,
+diff --git a/server/src/routes/v1/auth.route.js b/server/src/routes/v1/auth.route.js
+index 9c75b9e..2ea2fdc 100644
+--- a/server/src/routes/v1/auth.route.js
++++ b/server/src/routes/v1/auth.route.js
+@@ -8,8 +8,10 @@ const router = express.Router();
+ 
+ router.post('/register', validate(authValidation.register), authController.register);
+ router.post('/login', validate(authValidation.login), authController.login);
+-router.get('/github', oauth);
+-router.get('/github/callback', oauth, authController.github);
++router.get('/github', oauth('github'));
++router.get('/github/callback', oauth('github'), authController.oauth);
++router.get('/google', oauth('google'));
++router.get('/google/callback', oauth('google'), authController.oauth);
+ router.post('/logout', validate(authValidation.logout), authController.logout);
+ router.post('/refresh-tokens', validate(authValidation.refreshTokens), authController.refreshTokens);
+ router.post('/forgot-password', validate(authValidation.forgotPassword), authController.forgotPassword);
+@@ -184,6 +186,51 @@ module.exports = router;
+  *
+  */
+ 
++/**
++ * @swagger
++ * path:
++ *  /auth/google:
++ *    get:
++ *      summary: Google Authentication
++ *      tags: [Auth]
++ *      responses:
++ *        "302":
++ *          description: Found
++ *          headers:
++ *            Location:
++ *              description: Google Oauth URL.
++ *              schema:
++ *                type: string
++ *                format: uri 
++ *
++ */
++
++  /**
++ * @swagger
++ * path:
++ *  /auth/google/callback:
++ *    get:
++ *      summary: Google Authentication Callback
++ *      tags: [Auth]
++ *      responses:
++ *        "302":
++ *          description: Found
++ *          headers:
++ *            Location:
++ *              description: Client URL.
++ *              schema:
++ *                type: string
++ *                format: uri
++ *            Set-Cookie:
++ *              description: Refresh Token
++ *              schema:
++ *                type: object
++ *                properties:
++ *                  refreshToken:
++ *                    $ref: '#/components/schemas/Token'
++ *
++ */
++
+ /**
+  * @swagger
+  * path:
+diff --git a/server/src/services/user.service.js b/server/src/services/user.service.js
+index 7c9dd0c..4b02a26 100644
+--- a/server/src/services/user.service.js
++++ b/server/src/services/user.service.js
+@@ -33,6 +33,33 @@ const createUserWithStripe = async (userBody) => {
+   return user;
+ };
+ 
++/**
++ * Get or Create a user along with an OAuth account
++ * @param {String} strategy
++ * @param {Object} userBody
++ * @returns {Promise<User>}
++ */
++const getOrCreateUserWithOAuth = async (strategy, userBody) => {
++  let user;
++  switch (strategy) {
++    case 'github' : user = await User.findOne({ githubId: userBody.githubId }); break;
++    case 'google' : user = await User.findOne({ googleId: userBody.googleId }); break;
++    default : user = null;
++  }
++  if (user) {
++    return user;
++  }
++  user = await User.findOne({ email: userBody.email });
++  if (user) {
++    delete userBody.name;
++    delete userBody.password;
++    user = await updateUser(user, userBody);
++    return user;
++  }
++  user = await createUserWithStripe(userBody);
++  return user;
++};
++
+ /**
+  * Query for users
+  * @param {Object} filter - Mongo filter
+@@ -81,18 +108,11 @@ const getUserByEmail = async (email) => {
+  * @returns {Promise<User>}
+  */
+ const updateUserById = async (userId, updateBody) => {
+-  const user = await getUserById(userId);
++  let user = await getUserById(userId);
+   if (!user) {
+     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+   }
+-  if(updateBody.teams) {
+-    throw new ApiError(httpStatus.BAD_REQUEST, 'Cannot update user teams');
+-  }
+-  if (updateBody.email && (await User.isEmailTaken(updateBody.email, userId))) {
+-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+-  }
+-  Object.assign(user, updateBody);
+-  await user.save();
++  user = await updateUser(user, updateBody);
+   return user;
+ };
+ 
+@@ -183,6 +203,7 @@ const deleteTeamById = async (userId, teamId) => {
+ module.exports = {
+   createUser,
+   createUserWithStripe,
++  getOrCreateUserWithOAuth,
+   queryUsers,
+   getUserById,
+   getUserByStripeId,
+diff --git a/server/src/validations/auth.validation.js b/server/src/validations/auth.validation.js
+index 3168ab1..a33ffb7 100644
+--- a/server/src/validations/auth.validation.js
++++ b/server/src/validations/auth.validation.js
+@@ -16,10 +16,6 @@ const login = {
+   }),
+ };
+ 
+-const github = {
+-  body: Joi.object().keys({}),
+-};
+-
+ const logout = {
+   body: Joi.object().keys({}),
+   cookies: Joi.object().keys({
+@@ -59,7 +55,6 @@ const emailVerification = {
+ module.exports = {
+   register,
+   login,
+-  github,
+   logout,
+   refreshTokens,
+   forgotPassword,
+-- 
+2.33.1.windows.1
+

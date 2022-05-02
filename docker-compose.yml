@@ -1,0 +1,59 @@
+version: '3'
+
+services:
+  mongodb:
+    image: mongo:4.2.1-bionic
+    ports:
+      - '27017:27017'
+    volumes:
+      - dbdata:/data/db
+    networks:
+      - app-network
+
+  server:
+    restart: always
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: rocket/server
+    container_name: rocket-server-prod
+    environment:
+      MONGODB_URL: mongodb://mongodb:27017/
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+    
+  client:
+    restart: always
+    image: rocket/client
+    container_name: rocket-client-prod
+    volumes:
+      - web-root:/var/www/html
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+    links: 
+      - server
+    networks:
+      - app-network
+
+  certbot:
+    image: certbot/certbot
+    container_name: rocket-certbot
+    volumes:
+      - web-root:/var/www/html
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+    depends_on:
+      - client
+    command: certonly --webroot --webroot-path=/var/www/html --email chetan@rocketapp.me --agree-tos --no-eff-email -d cloud.rocketapp.me
+
+volumes:
+  dbdata:
+  certbot-etc:
+  certbot-var:
+  web-root:
+
+networks:
+  app-network:
+    driver: bridge
