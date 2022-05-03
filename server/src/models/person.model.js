@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
-const { toJSON } = require('./plugins');
+const { toJSON, paginate } = require('./plugins');
 
 const personSchema = mongoose.Schema(
   {
@@ -76,6 +76,7 @@ const personSchema = mongoose.Schema(
   }
 );
 personSchema.plugin(toJSON);
+personSchema.plugin(paginate);
 
 /**
  * @typedef Person

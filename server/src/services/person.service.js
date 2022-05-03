@@ -1,5 +1,5 @@
 const httpStatus = require('http-status');
-const Person = require('../models/person.model');
+const { Person } = require('../models');
 const ApiError = require('../utils/ApiError');
 
 const createPerson = async (personBody) => {
