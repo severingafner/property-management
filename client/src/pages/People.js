@@ -62,7 +62,8 @@ function People() {
       { name: 'email', title: 'Email'}
     ],
     // destructure people to only get the desired fields
-    body: people.map(({prename, name, email}) => ({prename, name, email}))
+    body: people.map(({prename, name, email}) => ({prename, name, email})),
+    rawData: people
   })
 
   const fields = [

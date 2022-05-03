@@ -25,8 +25,13 @@ function Header({dataHeader}) {
     </TableHeader>
   )
 }
-
-function Body({dataTable, onAction}) {
+/**
+ * 
+ * @param {obj} dataTable data for the table cells.
+ * @param {obj} rawData all the data of that record. Used to pass the whole record to the action handlers.
+ * @returns 
+ */
+function Body({dataTable, rawData, onAction}) {
   return (
     <TableBody>
       {dataTable.map((dataRow, i) => (
@@ -39,10 +44,10 @@ function Body({dataTable, onAction}) {
           )}
           <TableCell>
             <div className="flex items-center space-x-4">
-              <Button layout="link" size="icon" aria-label="Edit" onClick={(e) => {e.preventDefault(); if(onAction){onAction(dataRow, 'upsert')}} }>
+              <Button layout="link" size="icon" aria-label="Edit" onClick={(e) => {e.preventDefault(); if(onAction){onAction(rawData[i], 'upsert')}} }>
                 <EditIcon className="w-5 h-5" aria-hidden="true" />
               </Button>
-              <Button layout="link" size="icon" aria-label="Delete" onClick={(e) => {e.preventDefault(); if(onAction){onAction(dataRow, 'delete')}} }>
+              <Button layout="link" size="icon" aria-label="Delete" onClick={(e) => {e.preventDefault(); if(onAction){onAction(rawData[i], 'delete')}} }>
                 <TrashIcon className="w-5 h-5" aria-hidden="true" />
               </Button>
             </div>
@@ -59,7 +64,7 @@ export default function ActionTable({data, totalRows, onAction, onPageChange}) {
       <TableContainer className="mb-8">
         <Table>
           <Header dataHeader={data.header} />
-          <Body dataTable={data.body} onAction={onAction} />
+          <Body dataTable={data.body} rawData={data.rawData} onAction={onAction} />
         </Table>
         <TableFooter>
           <Pagination
