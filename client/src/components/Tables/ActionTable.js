@@ -54,7 +54,6 @@ function Body({dataTable, onAction}) {
 }
 
 export default function ActionTable({data, totalRows, onAction, onPageChange}) {
-  console.log(data);
   return (
     <>
       <TableContainer className="mb-8">
