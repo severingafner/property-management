@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react'
 import ThemedSuspense from '../components/ThemedSuspense'
 import PageTitle from '../components/Typography/PageTitle'
+import PageError from './Error'
 import { SnackbarContext } from '../context/SnackbarContext'
 import { personService } from '../services'
 import {
   Button
 } from '@windmill/react-ui'
-import PersonTable from '../components/Tables/PersonTable'
+import ActionTable from '../components/Tables/ActionTable'
 import CreatePersonModal from '../components/Modals/CreatePersonModal'
 import DeleteModal from '../components/Modals/DeleteModal'
 
@@ -16,11 +17,13 @@ function Persons() {
   const [refreshing, setRefreshing] = useState(false)
   const [activePerson, setActivePerson] = useState(null)
   const [persons, setPersons] = useState(null)
+  const [tableData, setTableData] = useState({header: [], boy: []})
   const [currentPage, setCurrentPage] = useState(1)
   const [totalResults, setTotalResults] = useState(0)
   const [showFormModal, setShowFormModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [error, setError] = useState(null)
+
   useEffect(() => {
     if(refreshing) {
       openSnackbar('Refresing Persons..')
@@ -33,7 +36,6 @@ function Persons() {
     setRefreshing(true); 
     return personService.getPersons(currentPage)
     .then(data => {
-      console.log(data);
       setRefreshing(false)
       setPersons(data.results)
       setTotalResults(data.totalResults)
@@ -52,6 +54,16 @@ function Persons() {
       setIsLoaded(true)
     })
   }, [refreshPersons])
+
+  const getTableData = () => ({
+    header: [
+      { name: 'prename', title: 'Prename'},
+      { name: 'name', title: 'Name'},
+      { name: 'email', title: 'Email'}
+    ],
+    // destructure persons to only get the desired fields
+    body: persons.map(({prename, name, email}) => ({prename, name, email}))
+  })
 
   const handleAction = (user, type) => {
     setActivePerson(user)
@@ -104,13 +116,17 @@ function Persons() {
   if(!isLoaded) {
     return <ThemedSuspense />
   }
+
+  if(error) {
+    return <PageError message="Some error occured: please try again." />
+  }
   return (
     <>
       <div className="flex flex-col pb-6 sm:pb-0 sm:flex-row justify-between sm:items-center">
         <PageTitle>All Persons</PageTitle>
         <Button onClick={(e) => {e.preventDefault(); handleAction(null, 'upsert')}}>Create Person</Button>
       </div>
-      <PersonTable persons={persons} totalResults={totalResults} onAction={handleAction} onPageChange={handlePageChange} />
+      <ActionTable data={getTableData()} totalRows={totalResults} onAction={handleAction} onPageChange={handlePageChange} />
       <CreatePersonModal isOpen={showFormModal} onClose={onModalClose} onAction={onModalAction} activePerson={activePerson} />
       <DeleteModal isOpen={showDeleteModal} onClose={onModalClose} onAction={onModalAction} name="Person" activeObj={activePerson} submitCB={personService.deletePerson} />
     </>
