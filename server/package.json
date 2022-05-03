@@ -1,7 +1,7 @@
 {
-  "name": "Rocket",
+  "name": "Property Managment",
   "version": "3.1.0",
-  "description": "Rocket SaaS Boilerplate",
+  "description": "Backend to manage properties'n stuff",
   "main": "src/index.js",
   "author": "Chetan Mittal",
   "engines": {
