@@ -10,27 +10,27 @@ const router = express.Router();
 
 const defaultRoutes = [
   {
-    path: '/bill',
+    path: '/bills',
     route: billRoute,
   },
   {
-    path: '/contract',
+    path: '/contracts',
     route: contractRoute,
   },
   {
-    path: '/creditor',
+    path: '/creditors',
     route: creditorRoute,
   },
   {
-    path: '/person',
+    path: '/persons',
     route: personRoute,
   },
   {
-    path: '/property',
+    path: '/properties',
     route: propertyRoute,
   },
   {
-    path: '/rentObject',
+    path: '/rentObjects',
     route: rentObjectRoute,
   },
 ];
