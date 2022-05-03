@@ -1,7 +1,8 @@
 import React from "react"
 import { Formik, Form, Field, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
-import { Input, Label, Select, HelperText } from '@windmill/react-ui'
+import { Input, Label, HelperText } from '@windmill/react-ui'
+import capitalize from '../../utils/capitalize'
 
 function BaseForm({fields, submitCb, formRef, callback}) {
   const initialValues = {}
@@ -39,7 +40,7 @@ function BaseForm({fields, submitCb, formRef, callback}) {
         <Form>
           {fields.map((field) => 
             <Label className="mt-4" key={field.name}>
-              <span>{field.name.charAt(0).toUpperCase() + field.name.slice(1)}</span>
+              <span>{capitalize(field.name)}</span>
               <Field className="mt-1" as={Input} name={field.name} type={field.type || 'text'}/>
               <ErrorMessage name={field.name}>{msg => <HelperText valid={false}>{msg}</HelperText>}</ErrorMessage>
            </Label>
