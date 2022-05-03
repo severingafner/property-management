@@ -8,6 +8,11 @@
 const routes = [
   {},
   {
+    path: '/app/persons',
+    icon: 'PeopleIcon',
+    name: 'Persons',
+  },
+  {
     path: '/app/dashboard', // the url
     icon: 'HomeIcon', // the component being exported from icons/index.js
     name: 'Dashboard', // name that appear in Sidebar
