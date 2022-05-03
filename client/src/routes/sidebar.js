@@ -8,9 +8,9 @@
 const routes = [
   {},
   {
-    path: '/app/persons',
+    path: '/app/people',
     icon: 'PeopleIcon',
-    name: 'Persons',
+    name: 'People',
   },
   {
     path: '/app/dashboard', // the url

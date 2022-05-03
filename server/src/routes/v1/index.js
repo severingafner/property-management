@@ -22,7 +22,7 @@ const defaultRoutes = [
     route: creditorRoute,
   },
   {
-    path: '/persons',
+    path: '/people',
     route: personRoute,
   },
   {

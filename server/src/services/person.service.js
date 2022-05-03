@@ -11,7 +11,7 @@ const getPersonById = async (id) => {
   return Person.findById(id);
 };
 
-const queryPersons = async (filter, options) => {
+const queryPeople = async (filter, options) => {
   const person = await Person.paginate(filter, options);
   return person;
 };
@@ -41,7 +41,7 @@ const deletePersonById = async (id) => {
 };
 
 module.exports = {
-  queryPersons,
+  queryPeople,
   getPersonById,
   createPerson,
   updatePersonById,

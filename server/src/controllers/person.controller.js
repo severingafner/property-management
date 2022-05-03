@@ -9,10 +9,10 @@ const createPerson = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send(user);
 });
 
-const getPersons = catchAsync(async (req, res) => {
+const getPeople = catchAsync(async (req, res) => {
   const filter = pick(req.query, ['name', 'prename']);
   const options = pick(req.query, ['sortBy', 'limit', 'page']);
-  const result = await personService.queryPersons(filter, options);
+  const result = await personService.queryPeople(filter, options);
   res.send(result);
 });
 
@@ -48,7 +48,7 @@ const deletePerson = catchAsync(async (req, res) => {
 
 module.exports = {
   createPerson,
-  getPersons,
+  getPeople,
   getPerson,
   updatePerson,
   deletePerson,

@@ -1,6 +1,6 @@
 const Joi = require('joi');
 
-const getPersons = {
+const getPeople = {
   query: Joi.object().keys({
     sortBy: Joi.string(),
     limit: Joi.number().integer(),
@@ -9,5 +9,5 @@ const getPersons = {
 };
 
 module.exports = {
-  getPersons,
+  getPeople,
 };

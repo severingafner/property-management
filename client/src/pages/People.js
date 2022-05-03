@@ -8,16 +8,16 @@ import {
   Button
 } from '@windmill/react-ui'
 import ActionTable from '../components/Tables/ActionTable'
-import CreatePersonModal from '../components/Modals/CreatePersonModal'
+import * as Yup from 'yup'
 import DeleteModal from '../components/Modals/DeleteModal'
+import UpsertModal from '../components/Modals/UpsertModal'
 
-function Persons() {
+function People() {
   const [isLoaded, setIsLoaded] = useState(false)
   const { openSnackbar, closeSnackbar } = useContext(SnackbarContext)
   const [refreshing, setRefreshing] = useState(false)
   const [activePerson, setActivePerson] = useState(null)
-  const [persons, setPersons] = useState(null)
-  const [tableData, setTableData] = useState({header: [], boy: []})
+  const [people, setPeople] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalResults, setTotalResults] = useState(0)
   const [showFormModal, setShowFormModal] = useState(false)
@@ -26,18 +26,18 @@ function Persons() {
 
   useEffect(() => {
     if(refreshing) {
-      openSnackbar('Refresing Persons..')
+      openSnackbar('Refresing People..')
     } else {
       closeSnackbar()
     }
   }, [refreshing, openSnackbar, closeSnackbar])
 
-  const refreshPersons = useCallback(() => {
+  const refreshPeople = useCallback(() => {
     setRefreshing(true); 
-    return personService.getPersons(currentPage)
+    return personService.getPeople(currentPage)
     .then(data => {
       setRefreshing(false)
-      setPersons(data.results)
+      setPeople(data.results)
       setTotalResults(data.totalResults)
       return null
     })
@@ -49,11 +49,11 @@ function Persons() {
   }, [currentPage])
 
   useEffect(() => {
-    refreshPersons()
+    refreshPeople()
     .then(() => {
       setIsLoaded(true)
     })
-  }, [refreshPersons])
+  }, [refreshPeople])
 
   const getTableData = () => ({
     header: [
@@ -61,9 +61,45 @@ function Persons() {
       { name: 'name', title: 'Name'},
       { name: 'email', title: 'Email'}
     ],
-    // destructure persons to only get the desired fields
-    body: persons.map(({prename, name, email}) => ({prename, name, email}))
+    // destructure people to only get the desired fields
+    body: people.map(({prename, name, email}) => ({prename, name, email}))
   })
+
+  const fields = [
+    {
+      name: 'prename',
+      validation: Yup.string().required('Prename is required')
+    },
+    {
+      name: 'name',
+      validation: Yup.string().required('Name is required')
+    },
+    {
+      name: 'email',
+      validation: Yup.string().email().required('Email is required'),
+      type: 'email'
+    },
+    {
+      name: 'iban',
+      validation: Yup.string()
+    },
+    {
+      name: 'street',
+      validation: Yup.string().required('Street is required')
+    },
+    {
+      name: 'housenumber',
+      validation: Yup.string()
+    },
+    {
+      name: 'zip',
+      validation: Yup.string().required('Zip is required')
+    },
+    {
+      name: 'city',
+      validation: Yup.string().required('City is required')
+    }
+  ]
 
   const handleAction = (user, type) => {
     setActivePerson(user)
@@ -102,11 +138,11 @@ function Persons() {
     switch(type) {
       case 'upsert' :
         setShowFormModal(false) 
-        refreshPersons() 
+        refreshPeople() 
         break
       case 'delete':
         setShowDeleteModal(false) 
-        refreshPersons()
+        refreshPeople()
         break
       default:
         break
@@ -123,13 +159,13 @@ function Persons() {
   return (
     <>
       <div className="flex flex-col pb-6 sm:pb-0 sm:flex-row justify-between sm:items-center">
-        <PageTitle>All Persons</PageTitle>
+        <PageTitle>All People</PageTitle>
         <Button onClick={(e) => {e.preventDefault(); handleAction(null, 'upsert')}}>Create Person</Button>
       </div>
       <ActionTable data={getTableData()} totalRows={totalResults} onAction={handleAction} onPageChange={handlePageChange} />
-      <CreatePersonModal isOpen={showFormModal} onClose={onModalClose} onAction={onModalAction} activePerson={activePerson} />
+      <UpsertModal isOpen={showFormModal} onClose={onModalClose} onAction={onModalAction} name="Person" activeObj={activePerson} fields={fields} onCreate={personService.createPerson} onUpdate={personService.updatePerson}/>
       <DeleteModal isOpen={showDeleteModal} onClose={onModalClose} onAction={onModalAction} name="Person" activeObj={activePerson} submitCB={personService.deletePerson} />
     </>
   )
 }
-export default Persons;
+export default People;
