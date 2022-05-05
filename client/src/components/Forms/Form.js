@@ -50,10 +50,11 @@ function BaseForm({fields, submitCb, callback}) {
               return (
                 <div className="mt-4">
                   <Label>{capitalize(field.name)}</Label>
-                  <div className="mt-2">
+                  <div className="mt-2" role="group">
                     {field.values.map((value, i) => {
-                      return (<Label className={0 < i? 'ml-6': ''} radio>
-                        <Input type="radio" value={value} name={field.name} />
+                      return (
+                      <Label className={0 < i? 'ml-6': ''} radio key={i}>
+                        <Field as={Input} type="radio" value={value} name={field.name} />
                         <span className="ml-2">{value}</span>
                       </Label>)
                     })}
@@ -61,6 +62,7 @@ function BaseForm({fields, submitCb, callback}) {
                 </div>
               )
             }
+            return '';
           }
           )}
 

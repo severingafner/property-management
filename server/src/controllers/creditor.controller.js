@@ -5,7 +5,7 @@ const catchAsync = require('../utils/catchAsync');
 const { creditorService } = require('../services');
 
 const createCreditor = catchAsync(async (req, res) => {
-  const user = await creditorService.createCreditor(req.body);
+  const user = await creditorService.createCreditor(req.body.data);
   res.status(httpStatus.CREATED).send(user);
 });
 

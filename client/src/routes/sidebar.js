@@ -13,6 +13,11 @@ const routes = [
     name: 'People',
   },
   {
+    path: '/app/creditors',
+    icon: 'MailIcon',
+    name: 'Creditors',
+  },
+  {
     path: '/app/dashboard', // the url
     icon: 'HomeIcon', // the component being exported from icons/index.js
     name: 'Dashboard', // name that appear in Sidebar

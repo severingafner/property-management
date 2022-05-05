@@ -4,13 +4,7 @@ import { lazy } from 'react'
 const People = lazy(() => import('../pages/People'))
 const Person = lazy(() => import('../pages/Person'))
 const Creditors = lazy(() => import('../pages/Creditors'))
-const Dashboard = lazy(() => import('../pages/Dashboard'))
-const Forms = lazy(() => import('../pages/Forms'))
-const Cards = lazy(() => import('../pages/Cards'))
-const Charts = lazy(() => import('../pages/Charts'))
-const Buttons = lazy(() => import('../pages/Buttons'))
-const Modals = lazy(() => import('../pages/Modals'))
-const Tables = lazy(() => import('../pages/Tables'))
+const Creditor = lazy(() => import('../pages/Creditor'))
 const Page404 = lazy(() => import('../pages/404'))
 const Blank = lazy(() => import('../pages/Blank'))
 
@@ -38,32 +32,8 @@ const routes = [
     component: Creditors, // view rendered
   },
   {
-    path: '/dashboard', // the url
-    component: Dashboard, // view rendered
-  },
-  {
-    path: '/forms',
-    component: Forms,
-  },
-  {
-    path: '/cards',
-    component: Cards,
-  },
-  {
-    path: '/charts',
-    component: Charts,
-  },
-  {
-    path: '/buttons',
-    component: Buttons,
-  },
-  {
-    path: '/modals',
-    component: Modals,
-  },
-  {
-    path: '/tables',
-    component: Tables,
+    path: '/creditors/:creditorId',
+    component: Creditor,
   },
   {
     path: '/404',

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { toJSON } = require('./plugins');
+const { toJSON, paginate } = require('./plugins');
 
 const creditorSchema = mongoose.Schema(
   {
@@ -62,6 +62,7 @@ const creditorSchema = mongoose.Schema(
   }
 );
 creditorSchema.plugin(toJSON);
+creditorSchema.plugin(paginate);
 
 /**
  * @typedef Creditor
