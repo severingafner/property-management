@@ -1,7 +1,6 @@
 import React from "react"
 import SimpleModal from './SimpleModal.js'
 import BaseForm from '../Forms/Form'
-import { personService } from "../../services"
 export default function UpsertModal({isOpen, onClose, onAction, activeObj, name, fields, onCreate, onUpdate}) {
   const [enabled, setEnabled] = React.useState(true)
   const formRef = React.useRef()

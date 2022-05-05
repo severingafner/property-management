@@ -43,7 +43,6 @@ function SidebarContent() {
                 <hr />
               </li>
             )
-          
           )
         )}
       </ul>

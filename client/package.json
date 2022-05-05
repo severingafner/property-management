@@ -1,6 +1,6 @@
 {
-  "name": "Property Management",
-  "version": "3.1.0",
+  "name": "property-management",
+  "version": "1.0.0",
   "description": "Frontend to manage properties'n stuff",
   "private": true,
   "scripts": {
