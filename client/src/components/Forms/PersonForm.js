@@ -1,7 +1,7 @@
 
 import * as Yup from 'yup'
 import React from "react"
-import BaseForm from '../Forms/Form'
+import BaseForm from './Form'
 import { personService } from '../../services'
 
 function PersonForm({person, callback}) {

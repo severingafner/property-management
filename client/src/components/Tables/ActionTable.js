@@ -32,7 +32,7 @@ function Header({dataHeader}) {
  * @param {obj} rawData all the data of that record. Used to pass the whole record to the action handlers.
  * @returns 
  */
-function Body({dataTable, rawData, onAction}) {
+function Body({route, dataTable, rawData, onAction}) {
   return (
     <TableBody>
       {dataTable.map((dataRow, i) => (
@@ -45,7 +45,7 @@ function Body({dataTable, rawData, onAction}) {
           )}
           <TableCell>
             <div className="flex items-center space-x-4">
-              <Link to={"/app/people/" + rawData[i].id}>
+              <Link to={"/app/" + route + "/" + rawData[i].id}>
                 <EditIcon className="w-5 h-5" aria-hidden="true" />
               </Link>
               <Button layout="link" size="icon" aria-label="Delete" onClick={(e) => {e.preventDefault(); if(onAction){onAction(rawData[i], 'delete')}} }>
@@ -59,13 +59,13 @@ function Body({dataTable, rawData, onAction}) {
   )
 }
 
-export default function ActionTable({data, totalRows, onAction, onPageChange}) {
+export default function ActionTable({route, data, totalRows, onAction, onPageChange}) {
   return (
     <>
       <TableContainer className="mb-8">
         <Table>
           <Header dataHeader={data.header} />
-          <Body dataTable={data.body} rawData={data.rawData} onAction={onAction} />
+          <Body route={route} dataTable={data.body} rawData={data.rawData} onAction={onAction} />
         </Table>
         <TableFooter>
           <Pagination

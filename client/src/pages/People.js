@@ -103,7 +103,7 @@ function People() {
         break
     }
   }
-  const createTeamCallback = () => {
+  const createCallback = () => {
     setShowCreatePersonForm(false);
     refreshPeople();
   }
@@ -124,10 +124,10 @@ function People() {
       {showCreatePersonForm && 
         <>
           <SectionTitle>Create Team</SectionTitle>
-          <PersonForm callback={createTeamCallback}/>
+          <PersonForm callback={createCallback}/>
         </>
       }
-      <ActionTable data={getTableData()} totalRows={totalResults} onAction={handleAction} onPageChange={handlePageChange} />
+      <ActionTable route="people" data={getTableData()} totalRows={totalResults} onAction={handleAction} onPageChange={handlePageChange} />
       <DeleteModal isOpen={showDeleteModal} onClose={onModalClose} onAction={onModalAction} name="Person" activeObj={activePerson} submitCB={personService.deletePerson} />
     </>
   )

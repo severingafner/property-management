@@ -10,7 +10,10 @@ const getPeople = (page) => {
 	  })
 }
 
-// TODO update
+const getPerson = (personId) => {
+  return axios.get(`${apiUrl}/v1/people/${personId}`, {})
+}
+
 const createPerson = (data) => {
 	return axios.post(`${apiUrl}/v1/people`, {
     data
@@ -28,6 +31,7 @@ const deletePerson = (personId) => {
 
 export const personService = {
   getPeople,
+  getPerson,
   createPerson,
   updatePerson,
   deletePerson,
