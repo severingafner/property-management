@@ -1,7 +1,7 @@
 import React from "react"
 import { Formik, Form, Field, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
-import { Input, Label, HelperText, Button } from '@windmill/react-ui'
+import { Input, Select, Label, HelperText, Button } from '@windmill/react-ui'
 import capitalize from '../../utils/capitalize'
 
 function BaseForm({fields, submitCb, callback}) {
@@ -45,6 +45,18 @@ function BaseForm({fields, submitCb, callback}) {
                 <Field className="mt-1" as={Input} name={field.name} type={field.type || 'text'}/>
                 <ErrorMessage name={field.name}>{msg => <HelperText valid={false}>{msg}</HelperText>}</ErrorMessage>
               </Label>)
+            }
+            if(field.type === 'dropdown') {
+              return (
+                <Label className="mt-4" key={field.name}>
+                  <span>{capitalize(field.name)}</span>
+                  <Field as={Select} name={field.name} className="mt-1">
+                  {field.values.map((value, i) => {
+                    return (<option key={i}>{value}</option>);
+                  })}
+                  </Field>
+                </Label>
+              )
             }
             if(field.type === 'radio') {
               return (
