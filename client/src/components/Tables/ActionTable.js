@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from "react-router-dom"
 import {
   TableHeader,
   TableCell,
@@ -44,9 +45,9 @@ function Body({dataTable, rawData, onAction}) {
           )}
           <TableCell>
             <div className="flex items-center space-x-4">
-              <Button layout="link" size="icon" aria-label="Edit" onClick={(e) => {e.preventDefault(); if(onAction){onAction(rawData[i], 'upsert')}} }>
+              <Link to={"/app/people/" + rawData[i].id}>
                 <EditIcon className="w-5 h-5" aria-hidden="true" />
-              </Button>
+              </Link>
               <Button layout="link" size="icon" aria-label="Delete" onClick={(e) => {e.preventDefault(); if(onAction){onAction(rawData[i], 'delete')}} }>
                 <TrashIcon className="w-5 h-5" aria-hidden="true" />
               </Button>

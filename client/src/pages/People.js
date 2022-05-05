@@ -3,14 +3,14 @@ import ThemedSuspense from '../components/ThemedSuspense'
 import PageTitle from '../components/Typography/PageTitle'
 import PageError from './Error'
 import { SnackbarContext } from '../context/SnackbarContext'
+import SectionTitle from '../components/Typography/SectionTitle'
 import { personService } from '../services'
 import {
   Button
 } from '@windmill/react-ui'
 import ActionTable from '../components/Tables/ActionTable'
-import * as Yup from 'yup'
 import DeleteModal from '../components/Modals/DeleteModal'
-import UpsertModal from '../components/Modals/UpsertModal'
+import PersonForm from "../components/Forms/PersonForm.js"
 
 function People() {
   const [isLoaded, setIsLoaded] = useState(false)
@@ -20,9 +20,9 @@ function People() {
   const [people, setPeople] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalResults, setTotalResults] = useState(0)
-  const [showFormModal, setShowFormModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [error, setError] = useState(null)
+  const [showCreatePersonForm, setShowCreatePersonForm] = useState(false)
 
   useEffect(() => {
     if(refreshing) {
@@ -66,48 +66,9 @@ function People() {
     rawData: people
   })
 
-  const fields = [
-    {
-      name: 'prename',
-      validation: Yup.string().required('Prename is required')
-    },
-    {
-      name: 'name',
-      validation: Yup.string().required('Name is required')
-    },
-    {
-      name: 'email',
-      validation: Yup.string().email().required('Email is required'),
-      type: 'email'
-    },
-    {
-      name: 'iban',
-      validation: Yup.string()
-    },
-    {
-      name: 'street',
-      validation: Yup.string().required('Street is required')
-    },
-    {
-      name: 'housenumber',
-      validation: Yup.string()
-    },
-    {
-      name: 'zip',
-      validation: Yup.string().required('Zip is required')
-    },
-    {
-      name: 'city',
-      validation: Yup.string().required('City is required')
-    }
-  ]
-
   const handleAction = (user, type) => {
     setActivePerson(user)
     switch(type) {
-      case 'upsert' :
-        setShowFormModal(true) 
-        break
       case 'delete':
         setShowDeleteModal(true) 
         break
@@ -123,9 +84,6 @@ function People() {
   const onModalClose = (type) => {
     setActivePerson(null)
     switch(type) {
-      case 'upsert' :
-        setShowFormModal(false) 
-        break
       case 'delete':
         setShowDeleteModal(false) 
         break
@@ -137,10 +95,6 @@ function People() {
   const onModalAction = (type) => {
     setActivePerson(null)
     switch(type) {
-      case 'upsert' :
-        setShowFormModal(false) 
-        refreshPeople() 
-        break
       case 'delete':
         setShowDeleteModal(false) 
         refreshPeople()
@@ -148,6 +102,10 @@ function People() {
       default:
         break
     }
+  }
+  const createTeamCallback = () => {
+    setShowCreatePersonForm(false);
+    refreshPeople();
   }
 
   if(!isLoaded) {
@@ -161,10 +119,15 @@ function People() {
     <>
       <div className="flex flex-col pb-6 sm:pb-0 sm:flex-row justify-between sm:items-center">
         <PageTitle>All People</PageTitle>
-        <Button onClick={(e) => {e.preventDefault(); handleAction(null, 'upsert')}}>Create Person</Button>
+        <Button onClick={(e) => {e.preventDefault(); setShowCreatePersonForm(!showCreatePersonForm)}}>Create Person</Button>
       </div>
+      {showCreatePersonForm && 
+        <>
+          <SectionTitle>Create Team</SectionTitle>
+          <PersonForm callback={createTeamCallback}/>
+        </>
+      }
       <ActionTable data={getTableData()} totalRows={totalResults} onAction={handleAction} onPageChange={handlePageChange} />
-      <UpsertModal isOpen={showFormModal} onClose={onModalClose} onAction={onModalAction} name="Person" activeObj={activePerson} fields={fields} onCreate={personService.createPerson} onUpdate={personService.updatePerson}/>
       <DeleteModal isOpen={showDeleteModal} onClose={onModalClose} onAction={onModalAction} name="Person" activeObj={activePerson} submitCB={personService.deletePerson} />
     </>
   )

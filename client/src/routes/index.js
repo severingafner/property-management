@@ -2,6 +2,8 @@ import { lazy } from 'react'
 
 // use lazy for better code splitting, a.k.a. load faster
 const People = lazy(() => import('../pages/People'))
+const Person = lazy(() => import('../pages/Person'))
+const Creditors = lazy(() => import('../pages/Creditors'))
 const Dashboard = lazy(() => import('../pages/Dashboard'))
 const Forms = lazy(() => import('../pages/Forms'))
 const Cards = lazy(() => import('../pages/Cards'))
@@ -26,6 +28,14 @@ const routes = [
   {
     path: '/people', // the url
     component: People, // view rendered
+  },
+  {
+    path: '/people/:personId',
+    component: Person,
+  },
+  {
+    path: '/creditors', // the url
+    component: Creditors, // view rendered
   },
   {
     path: '/dashboard', // the url
