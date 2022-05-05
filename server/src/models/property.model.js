@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { toJSON } = require('./plugins');
+const { toJSON, paginate } = require('./plugins');
 
 const propertySchema = mongoose.Schema(
   {
@@ -45,6 +45,7 @@ const propertySchema = mongoose.Schema(
   }
 );
 propertySchema.plugin(toJSON);
+propertySchema.plugin(paginate);
 
 /**
  * @typedef Property

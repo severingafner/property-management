@@ -18,6 +18,9 @@ const routes = [
     name: 'Creditors',
   },
   {
+    path: '/app/properties',
+    icon: 'HomeIcon',
+    name: 'Properties',
   },
   {
     icon: 'PagesIcon',

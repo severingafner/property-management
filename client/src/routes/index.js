@@ -5,6 +5,8 @@ const People = lazy(() => import('../pages/People'))
 const Person = lazy(() => import('../pages/Person'))
 const Creditors = lazy(() => import('../pages/Creditors'))
 const Creditor = lazy(() => import('../pages/Creditor'))
+const Properties = lazy(() => import('../pages/Properties'))
+const Property = lazy(() => import('../pages/Property'))
 const Page404 = lazy(() => import('../pages/404'))
 const Blank = lazy(() => import('../pages/Blank'))
 
@@ -28,12 +30,20 @@ const routes = [
     component: Person,
   },
   {
-    path: '/creditors', // the url
-    component: Creditors, // view rendered
+    path: '/creditors',
+    component: Creditors,
   },
   {
     path: '/creditors/:creditorId',
     component: Creditor,
+  },
+  {
+    path: '/properties',
+    component: Properties,
+  },
+  {
+    path: '/properties/:propertyId',
+    component: Property,
   },
   {
     path: '/404',

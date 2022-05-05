@@ -5,7 +5,7 @@ const catchAsync = require('../utils/catchAsync');
 const { propertyService } = require('../services');
 
 const createProperty = catchAsync(async (req, res) => {
-  const user = await propertyService.createProperty(req.body);
+  const user = await propertyService.createProperty(req.body.data);
   res.status(httpStatus.CREATED).send(user);
 });
 
