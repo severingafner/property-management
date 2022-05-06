@@ -12,7 +12,7 @@ function App() {
         <Switch>
           <Route path="/app" component={Layout} />
           <Route exact path="/" component={Layout} />
-          <Redirect from="*" to="/" />
+          <Redirect from="*" to="/properties" />
         </Switch>
       </Router>
     </>
