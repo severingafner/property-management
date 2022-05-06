@@ -74,6 +74,16 @@ function BaseForm({fields, submitCb, callback}) {
                 </div>
               )
             }
+            if(field.type === 'checkbox') {
+              return (
+                <Label className="mt-6" check>
+                  <Input type="checkbox" />
+                  <span className="ml-2">
+                    {field.name}
+                  </span>
+                </Label>
+              )
+            }
             return '';
           }
           )}
