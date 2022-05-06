@@ -14,7 +14,7 @@ const rentObjectSchema = mongoose.Schema(
     type: {
       type: String,
       enum: ['apartment', 'cellar', 'garage', 'parkinglot'],
-      default: 'active',
+      default: 'apartment',
     },
     property: {
       type: mongoose.Schema.Types.ObjectId,

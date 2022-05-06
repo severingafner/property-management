@@ -46,7 +46,6 @@ const getFormFields = () => fields.map(field => {
 });
 
 const submitCb = async (data) => {
-  debugger;
   if(creditor) {
     await creditorService.updateCreditor({
       ...creditor,

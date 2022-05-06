@@ -1,55 +1,26 @@
 const httpStatus = require('http-status');
-const pick = require('../utils/pick');
-const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
-const { rentObjectService } = require('../services');
+const { rentObjectService, propertyService } = require('../services');
 
 const createRentObject = catchAsync(async (req, res) => {
-  const user = await rentObjectService.createRentObject(req.body);
-  res.status(httpStatus.CREATED).send(user);
-});
-
-const getRentObjects = catchAsync(async (req, res) => {
-  const filter = pick(req.query, ['name', 'prename']);
-  const options = pick(req.query, ['sortBy', 'limit', 'page']);
-  const result = await rentObjectService.queryRentObjects(filter, options);
-  res.send(result);
+  const property = await propertyService.getPropertyById(req.params.propertyId);
+  const rentObject = await rentObjectService.createRentObject(property, req.body.data);
+  res.status(httpStatus.CREATED).send(rentObject);
 });
 
 const getRentObject = catchAsync(async (req, res) => {
-  const rentObject = await rentObjectService.getRentObjectById(req.params.rentObjectId);
-  if (!rentObject) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'RentObject not found');
-  }
-  res.send(rentObject);
-});
-
-const updateRentObject = catchAsync(async (req, res) => {
-  const rentObjectOld = await rentObjectService.getRentObjectById(req.params.rentObjectId);
-  if (!rentObjectOld) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'RentObject not found');
-  }
-  const rentObject = {
-    ...rentObjectOld,
-    ...req.body,
-  };
-  await rentObjectService.updateRentObjectById(rentObjectOld.id, rentObject);
-  res.send(rentObject);
+  res.send({});
 });
 
 const deleteRentObject = catchAsync(async (req, res) => {
-  const rentObject = await rentObjectService.getRentObjectById(req.params.rentObjectId);
-  if (!rentObject) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'RentObject not found');
-  }
-  await rentObjectService.deleteRentObjectById(req.params.rentObjectId);
+  const property = await propertyService.getPropertyById(req.params.propertyId);
+  property.rentObjects.id(req.params.rentObjectId).remove();
+  property.save();
   res.status(httpStatus.NO_CONTENT).send();
 });
 
 module.exports = {
-  createRentObject,
-  getRentObjects,
   getRentObject,
-  updateRentObject,
+  createRentObject,
   deleteRentObject,
 };

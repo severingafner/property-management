@@ -2,9 +2,10 @@ const httpStatus = require('http-status');
 const RentObject = require('../models/rentobject.model');
 const ApiError = require('../utils/ApiError');
 
-const createRentObject = async (rentObjectBody) => {
-  const rentObject = await RentObject.create(rentObjectBody);
-  return rentObject;
+const createRentObject = async (property, rentObjectBody) => {
+  await property.rentObjects.push(rentObjectBody);
+  const obj = await property.save();
+  return obj;
 };
 
 const getRentObjectById = async (id) => {

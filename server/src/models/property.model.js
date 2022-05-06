@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const RentObject = require('./rentobject.model');
 const { toJSON, paginate } = require('./plugins');
 
 const propertySchema = mongoose.Schema(
@@ -39,6 +40,7 @@ const propertySchema = mongoose.Schema(
       type: String,
       trim: true,
     },
+    rentObjects: [RentObject.RentObject.schema],
   },
   {
     timestamps: true,

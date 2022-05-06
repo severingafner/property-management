@@ -4,7 +4,6 @@ const contractRoute = require('./contract.route');
 const creditorRoute = require('./creditor.route');
 const personRoute = require('./person.route');
 const propertyRoute = require('./property.route');
-const rentObjectRoute = require('./rentObject.route');
 
 const router = express.Router();
 
@@ -28,10 +27,6 @@ const defaultRoutes = [
   {
     path: '/properties',
     route: propertyRoute,
-  },
-  {
-    path: '/rentObjects',
-    route: rentObjectRoute,
   },
 ];
 

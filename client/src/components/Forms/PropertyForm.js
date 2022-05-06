@@ -9,10 +9,8 @@ import getKeyByValue from '../../utils/getKeyByValue'
 function PropertyForm({property, callback}) {
   const [peopleMap, setPeopleMap] = useState(null)
   const [fields, setFields] = useState(null)
-  const [isLoaded, setIsLoaded] = useState(false)
 
 const fetchPeople = () => {
-  setIsLoaded(false);
   personService.getPeople(1)
   .then(data => {
     const m_peopleMap = {};
@@ -62,7 +60,6 @@ const fetchPeople = () => {
     return null
   })
   .finally(() => {
-    setIsLoaded(true);
   })
 }
 
@@ -72,7 +69,7 @@ const fetchPeople = () => {
 
 const getFormFields = () => fields.map(field => {
   if(field.name === 'owner') {
-    field.default = peopleMap[property[field.name]];
+    field.default = property? peopleMap[property[field.name]] : peopleMap[0];
   } else {
     field.default = (property && property[field.name]) || '';
   }
