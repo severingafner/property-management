@@ -35,10 +35,16 @@ function BaseForm({fields, submitCb, callback}) {
           );
         }, 400);
       }}
-    >  
-      {({ errors, status, touched, isSubmitting }) => (
+    >
+      {props => (
         <Form>
           {fields.map((field) => {
+            if(field.condition) {
+              const [name, value] = field.condition.split(':');
+              if(props.values[name] !== value) {
+                return;
+              }
+            }
             if(!field.type || field.type === 'email' || field.type === 'date') {
               return (<Label className="mt-4" key={field.name}>
                 <span>{capitalize(field.name)}</span>
@@ -89,9 +95,9 @@ function BaseForm({fields, submitCb, callback}) {
           }
           )}
 
-          <Button className="mt-6" block type="submit" value="submit" disabled={isSubmitting}>Save</Button>
-          {status && (
-            <HelperText valid={false}>{status}</HelperText>
+          <Button className="mt-6" block type="submit" value="submit" disabled={props.isSubmitting}>Save</Button>
+          {props.status && (
+            <HelperText valid={false}>{props.status}</HelperText>
           )}
           
         </Form>
