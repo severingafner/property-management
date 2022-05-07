@@ -32,17 +32,6 @@ const routes = [
     icon: 'TablesIcon',
     name: 'Contracts',
   },
-  {
-    icon: 'PagesIcon',
-    name: 'Pages',
-    routes: [
-      // submenu
-      {
-        path: '/app/404',
-        name: '404',
-      },
-    ],
-  },
 ]
 
 export default routes
