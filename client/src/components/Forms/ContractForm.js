@@ -45,7 +45,6 @@ const fields = [
     name: 'isFlatrate',
     title: 'Are the additional Costs covered by a flatrate',
     type: 'checkbox',
-    default: 'true',
     validation: Yup.bool()
   },
   {
