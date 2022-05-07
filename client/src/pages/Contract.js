@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
-import { contractService, propertyService, personService, billService } from '../services'
+import { contractService, propertyService, personService } from '../services'
 import ThemedSuspense from '../components/ThemedSuspense'
 import PageError from './Error'
 import PageTitle from '../components/Typography/PageTitle'
@@ -12,6 +12,9 @@ import {
 } from '@windmill/react-ui'
 import ActionTable from '../components/Tables/ActionTable'
 import DeleteModal from '../components/Modals/DeleteModal'
+import InfoCard from '../components/Cards/InfoCard'
+import RoundIcon from '../components/RoundIcon'
+import { MoneyIcon } from '../icons'
 
 function Contract() {
   const { contractId } = useParams()
@@ -23,11 +26,25 @@ function Contract() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [peopleMap, setPeopleMap] = useState(null)
   const [rentObjectMap, setRentObjectMap] = useState(null)
+  const [balance, setBalance] = useState(null)
+  const [color, setColor] = useState(null)
   
+  const monthDiff = (dateFrom, dateTo) => {
+    return dateTo.getMonth() - dateFrom.getMonth() + 
+      (12 * (dateTo.getFullYear() - dateFrom.getFullYear()))
+  }
+
   const refreshContact = useCallback(() => {
     return contractService.getContract(contractId)
     .then(response => {
-      setContract(response.data)
+      const m_contract = response.data;
+      const payedAmount = m_contract.payments.reduce(((acc, payment) => acc + payment.amount), 0);
+      const contractMonths = monthDiff(new Date(m_contract.startDate), new Date(m_contract.endDate));
+      const dueAmount = contractMonths * (m_contract.rent + (m_contract.aditionalCosts || 0));
+      const m_balance = payedAmount - dueAmount;
+      setBalance(m_balance);
+      setColor(m_balance < 0? 'red' : 'green');
+      setContract(m_contract)
     })
     .catch(err => {
       setError(err)
@@ -75,7 +92,7 @@ function Contract() {
         })
       })
     })
-  }, [refreshContact,refreshPeople, refreshRentObjects])
+  }, [refreshContact, refreshPeople, refreshRentObjects])
 
   const getTableData = () => ({
     header: [
@@ -86,18 +103,6 @@ function Contract() {
     body: contract.payments.map(({amount, date}) => ({amount, date: date ? new Date(date).toDateString() : '',})),
     rawData: contract.payments
   })
-
-  const handleAction = (obj, type) => {
-    setActiveRentObject(obj)
-    switch(type) {
-      case 'delete':
-        setShowDeleteModal(true) 
-        break
-      default:
-        setActiveRentObject(null) 
-        break
-    }
-  }
 
   const onModalClose = (type) => {
     setActiveRentObject(null)
@@ -163,6 +168,16 @@ function Contract() {
   return (
     <>
       <PageTitle>{contract.prename} {contract.name}</PageTitle>
+      <div className="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
+        <InfoCard title="Account balance" value={balance}>
+          <RoundIcon
+            icon={MoneyIcon}
+            iconColorClass={`text-${color}-500 dark:text-${color}-100`}
+            bgColorClass={`bg-${color}-100 dark:bg-${color}-500`}
+            className="mr-4"
+          />
+        </InfoCard>
+      </div>
       <SectionTitle>Contract Data</SectionTitle>
       <ContractForm contract={contract} peopleMap={peopleMap} rentObjectMap={rentObjectMap} callback={updateContractCallback} />
       <div className="flex flex-wrap justify-between mb-4">
