@@ -41,12 +41,13 @@ const fields = [
     name: 'additionalCosts',
     validation: Yup.number().required('AdditionalCosts is required')
   },
-  {
-    name: 'isFlatrate',
-    title: 'Are the additional Costs covered by a flatrate',
-    type: 'checkbox',
-    validation: Yup.bool()
-  },
+  // {
+  //   name: 'isFlatrate',
+  //   title: 'Are the additional Costs covered by a flatrate',
+  //   type: 'checkbox',
+  //   default: 'true',
+  //   validation: Yup.bool()
+  // },
   {
     name: 'deposit',
     validation: Yup.number().required('Deposit is required')
