@@ -7,8 +7,9 @@ const Creditors = lazy(() => import('../pages/Creditors'))
 const Creditor = lazy(() => import('../pages/Creditor'))
 const Properties = lazy(() => import('../pages/Properties'))
 const Property = lazy(() => import('../pages/Property'))
+const Contracts = lazy(() => import('../pages/Contracts'))
+const Contract = lazy(() => import('../pages/Contract'))
 const Page404 = lazy(() => import('../pages/404'))
-const Blank = lazy(() => import('../pages/Blank'))
 
 /**
  * ⚠ These are internal routes!
@@ -46,12 +47,16 @@ const routes = [
     component: Property,
   },
   {
-    path: '/404',
-    component: Page404,
+    path: '/contracts',
+    component: Contracts,
   },
   {
-    path: '/blank',
-    component: Blank,
+    path: '/contracts/:contractId',
+    component: Contract,
+  },
+  {
+    path: '/404',
+    component: Page404,
   },
 ]
 

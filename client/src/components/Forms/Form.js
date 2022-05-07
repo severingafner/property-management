@@ -39,20 +39,21 @@ function BaseForm({fields, submitCb, callback}) {
       {({ errors, status, touched, isSubmitting }) => (
         <Form>
           {fields.map((field) => {
-            if(!field.type || field.type === 'email') {
+            if(!field.type || field.type === 'email' || field.type === 'date') {
               return (<Label className="mt-4" key={field.name}>
                 <span>{capitalize(field.name)}</span>
                 <Field className="mt-1" as={Input} name={field.name} type={field.type || 'text'}/>
                 <ErrorMessage name={field.name}>{msg => <HelperText valid={false}>{msg}</HelperText>}</ErrorMessage>
               </Label>)
             }
+            // 
             if(field.type === 'dropdown') {
               return (
                 <Label className="mt-4" key={field.name}>
                   <span>{capitalize(field.name)}</span>
                   <Field as={Select} name={field.name} className="mt-1">
                   {field.values.map((value, i) => {
-                    return (<option key={i}>{value}</option>);
+                    return (<option key={i} value={value}>{value}</option>);
                   })}
                   </Field>
                 </Label>
@@ -60,7 +61,7 @@ function BaseForm({fields, submitCb, callback}) {
             }
             if(field.type === 'radio') {
               return (
-                <div className="mt-4">
+                <div className="mt-4" key={field.name}>
                   <Label>{capitalize(field.name)}</Label>
                   <div className="mt-2" role="group">
                     {field.values.map((value, i) => {
@@ -79,7 +80,7 @@ function BaseForm({fields, submitCb, callback}) {
                 <Label className="mt-6" check>
                   <Input type="checkbox" />
                   <span className="ml-2">
-                    {field.name}
+                    {field.title}
                   </span>
                 </Label>
               )

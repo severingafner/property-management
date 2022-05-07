@@ -23,6 +23,11 @@ const routes = [
     name: 'Properties',
   },
   {
+    path: '/app/contracts',
+    icon: 'MoneyIcon',
+    name: 'Contracts',
+  },
+  {
     icon: 'PagesIcon',
     name: 'Pages',
     routes: [
@@ -30,10 +35,6 @@ const routes = [
       {
         path: '/app/404',
         name: '404',
-      },
-      {
-        path: '/app/blank',
-        name: 'Blank',
       },
     ],
   },
