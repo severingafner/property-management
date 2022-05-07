@@ -47,7 +47,7 @@ const RentObject = mongoose.model('RentObject', rentObjectSchema);
 const Apartment = RentObject.discriminator(
   'Apartment',
   new mongoose.Schema({
-    hatRefrigerator: Boolean,
+    hasRefrigerator: Boolean,
     hasDishwasher: Boolean,
     hasStove: Boolean,
     hasOven: Boolean,

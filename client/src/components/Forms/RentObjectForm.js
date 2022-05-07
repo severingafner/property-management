@@ -42,7 +42,42 @@ function RentObjectForm({propertyId, rentObject, callback}) {
       title: 'has Redrigerator',
       type: 'checkbox',
       validation: Yup.bool()
-    }
+    },
+    {
+      condition: 'type:apartment',
+      name: 'hasDishwasher',
+      title: 'has Dishwasher',
+      type: 'checkbox',
+      validation: Yup.bool()
+    },
+    {
+      condition: 'type:apartment',
+      name: 'hasStove',
+      title: 'has Stove',
+      type: 'checkbox',
+      validation: Yup.bool()
+    },
+    {
+      condition: 'type:apartment',
+      name: 'hasOven',
+      title: 'has Oven',
+      type: 'checkbox',
+      validation: Yup.bool()
+    },
+    {
+      condition: 'type:apartment',
+      name: 'hasWashingMachine',
+      title: 'has Washing Machine',
+      type: 'checkbox',
+      validation: Yup.bool()
+    },
+    {
+      condition: 'type:apartment',
+      name: 'hasTumbler',
+      title: 'has Tumbler',
+      type: 'checkbox',
+      validation: Yup.bool()
+    },
   ]
 
 const getFormFields = () => fields.map(field => {
