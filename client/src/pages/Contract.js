@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
-import { contractService, propertyService, personService } from '../services'
+import { contractService, propertyService, personService, billService } from '../services'
 import ThemedSuspense from '../components/ThemedSuspense'
 import PageError from './Error'
 import PageTitle from '../components/Typography/PageTitle'
 import ContractForm from "../components/Forms/ContractForm.js"
-import RentObjectForm from "../components/Forms/RentObjectForm.js"
+import PaymentForm from "../components/Forms/PaymentForm.js"
 import SectionTitle from '../components/Typography/SectionTitle'
 import {
   Button
@@ -75,20 +75,19 @@ function Contract() {
         })
       })
     })
-  }, [refreshContact])
+  }, [refreshContact,refreshPeople, refreshRentObjects])
 
   const getTableData = () => ({
     header: [
-      { name: 'position', title: 'Position'},
-      { name: 'type', title: 'Type'},
+      { name: 'amount', title: 'Amount'},
+      { name: 'date', title: 'Date'},
     ],
     // destructure contracts to only get the desired fields
-    body: contract.rentObjects.map(({position, type}) => ({position, type})),
-    rawData: contract.rentObjects
+    body: contract.payments.map(({amount, date}) => ({amount, date: date ? new Date(date).toDateString() : '',})),
+    rawData: contract.payments
   })
 
   const handleAction = (obj, type) => {
-    console.log(obj);
     setActiveRentObject(obj)
     switch(type) {
       case 'delete':
@@ -130,15 +129,30 @@ function Contract() {
     })
   }
 
-  const createObjectCallback = () => {
+  const createObjectCallback = (m_payment) => {
+    const newPayment = {
+      amount: m_payment.amount,
+      date: new Date(m_payment.date).toISOString()
+    }
     setShowCreateForm(false);
-    refreshContact();
+      const payments = [...contract.payments , m_payment];
+      setContract({
+        ...contract,
+        payments:  payments
+      })
+  }
+
+  const deletePayment = (m_payment) => {
+    setContract({
+      ...contract,
+      payments: contract.payments.filter(payment => payment !== m_payment)
+    })
   }
 
   const deleteCallback = (objId) => {
     return contractService.deleteContract(objId)
   }
-  
+
   if(!isLoaded) {
     return <ThemedSuspense />
   }
@@ -151,18 +165,18 @@ function Contract() {
       <PageTitle>{contract.prename} {contract.name}</PageTitle>
       <SectionTitle>Contract Data</SectionTitle>
       <ContractForm contract={contract} peopleMap={peopleMap} rentObjectMap={rentObjectMap} callback={updateContractCallback} />
-      {/* <div className="flex flex-wrap justify-between mb-4">
+      <div className="flex flex-wrap justify-between mb-4">
         <SectionTitle>Payments</SectionTitle>
           <Button onClick={(e) => {e.preventDefault(); setShowCreateForm(!showCreateForm)}}>Add Payment</Button>
       </div>
       {showCreateForm && 
         <>
           <SectionTitle>Create Payment</SectionTitle>
-          <RentObjectForm contractId={contractId} callback={createObjectCallback}/>
+          <PaymentForm callback={createObjectCallback}/>
         </>
       }
-      <ActionTable route="payments" data={getTableData()} totalRows={contract.rentObjects.length} onAction={handleAction} onPageChange={() => {}} />
-      <DeleteModal isOpen={showDeleteModal} onClose={onModalClose} onAction={onModalAction} name="Payment" activeObj={activeRentObject} submitCB={deleteCallback} /> */}
+      <ActionTable route="" data={getTableData()} totalRows={contract.payments.length} onAction={deletePayment} onPageChange={() => {}} />
+      <DeleteModal isOpen={showDeleteModal} onClose={onModalClose} onAction={onModalAction} name="Payment" activeObj={activeRentObject} submitCB={deleteCallback} />
     </>
   )
 }
