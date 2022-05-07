@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { toJSON } = require('./plugins');
+const { toJSON, paginate } = require('./plugins');
 
 const contractSchema = mongoose.Schema(
   {
@@ -54,6 +54,7 @@ const contractSchema = mongoose.Schema(
   }
 );
 contractSchema.plugin(toJSON);
+contractSchema.plugin(paginate);
 
 /**
  * @typedef Contract
