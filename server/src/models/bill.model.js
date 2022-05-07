@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { toJSON } = require('./plugins');
+const { toJSON, paginate } = require('./plugins');
 
 const billSchema = mongoose.Schema(
   {
@@ -48,6 +48,7 @@ const billSchema = mongoose.Schema(
   }
 );
 billSchema.plugin(toJSON);
+billSchema.plugin(paginate);
 
 /**
  * @typedef Bill

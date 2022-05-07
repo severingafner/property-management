@@ -5,6 +5,8 @@ const People = lazy(() => import('../pages/People'))
 const Person = lazy(() => import('../pages/Person'))
 const Creditors = lazy(() => import('../pages/Creditors'))
 const Creditor = lazy(() => import('../pages/Creditor'))
+const Bills = lazy(() => import('../pages/Bills'))
+const Bill = lazy(() => import('../pages/Bill'))
 const Properties = lazy(() => import('../pages/Properties'))
 const Property = lazy(() => import('../pages/Property'))
 const Contracts = lazy(() => import('../pages/Contracts'))
@@ -37,6 +39,14 @@ const routes = [
   {
     path: '/creditors/:creditorId',
     component: Creditor,
+  },
+  {
+    path: '/bills',
+    component: Bills,
+  },
+  {
+    path: '/bills/:billId',
+    component: Bill,
   },
   {
     path: '/properties',

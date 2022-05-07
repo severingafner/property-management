@@ -18,13 +18,18 @@ const routes = [
     name: 'Creditors',
   },
   {
+    path: '/app/bills',
+    icon: 'MoneyIcon',
+    name: 'Bills',
+  },
+  {
     path: '/app/properties',
     icon: 'HomeIcon',
     name: 'Properties',
   },
   {
     path: '/app/contracts',
-    icon: 'MoneyIcon',
+    icon: 'TablesIcon',
     name: 'Contracts',
   },
   {

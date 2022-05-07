@@ -5,7 +5,7 @@ const catchAsync = require('../utils/catchAsync');
 const { billService } = require('../services');
 
 const createBill = catchAsync(async (req, res) => {
-  const user = await billService.createBill(req.body);
+  const user = await billService.createBill(req.body.data);
   res.status(httpStatus.CREATED).send(user);
 });
 
