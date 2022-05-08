@@ -1,23 +1,7 @@
-
 import * as Yup from 'yup'
-import React, { useEffect } from "react"
+import React from "react"
 import BaseForm from './Form'
 import { propertyService, rentObjectService } from '../../services'
-// import { Formik, Form, useField, useFormikContext } from 'formik'
-
-// const AppartmentField = (props) => {
-//   const {
-//     values: { type },
-//     touched,
-//     setFieldValue,
-//   } = useFormikContext();
-//   const [field, meta] = useField(props);
-//   useEffect(() => {
-//     if(type === 'apartment')  {
-
-//     }
-//   });
-// }
 
 function RentObjectForm({propertyId, rentObject, callback}) {
 

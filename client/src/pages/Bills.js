@@ -4,7 +4,7 @@ import PageTitle from '../components/Typography/PageTitle'
 import SectionTitle from '../components/Typography/SectionTitle'
 import PageError from './Error'
 import { SnackbarContext } from '../context/SnackbarContext'
-import { billService, creditorService, personService, propertyService } from '../services'
+import { billService, creditorService, propertyService } from '../services'
 import {
   Button
 } from '@windmill/react-ui'

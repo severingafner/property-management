@@ -42,7 +42,7 @@ function BaseForm({fields, submitCb, callback}) {
             if(field.condition) {
               const [name, value] = field.condition.split(':');
               if(props.values[name] !== value) {
-                return;
+                return '';
               }
             }
             if(!field.type || field.type === 'email' || field.type === 'date') {

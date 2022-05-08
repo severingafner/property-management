@@ -17,7 +17,6 @@ function Contracts() {
   const { openSnackbar, closeSnackbar } = useContext(SnackbarContext)
   const [refreshing, setRefreshing] = useState(false)
   const [activeContract, setActiveContract] = useState(null)
-  const [contracts, setContracts] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalResults, setTotalResults] = useState(0)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -40,7 +39,6 @@ function Contracts() {
     return contractService.getContracts(currentPage)
     .then(data => {
       setRefreshing(false)
-      setContracts(data.results)
       setTotalResults(data.totalResults)
       personService.getPeople(1)
       .then(peopleData => {

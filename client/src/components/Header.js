@@ -1,12 +1,11 @@
 import React, { useContext } from 'react'
 import { SidebarContext } from '../context/SidebarContext'
 import {
-  SearchIcon,
   MoonIcon,
   SunIcon,
   MenuIcon,
 } from '../icons'
-import { Input, WindmillContext } from '@windmill/react-ui'
+import { WindmillContext } from '@windmill/react-ui'
 
 function Header() {
   const { mode, toggleMode } = useContext(WindmillContext)

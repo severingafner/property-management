@@ -9,10 +9,6 @@ const createRentObject = (propertyId, data) => {
   })
 }
 
-const updateRentObject = (propertyId, rentObjectId) => {
-	return axios.delete(`${apiUrl}/v1/properties/${propertyId}/rentObject/${rentObjectId}`, {})
-}
-
 const deleteRentObject = (propertyId, rentObjectId) => {
 	return axios.delete(`${apiUrl}/v1/properties/${propertyId}/rentObject/${rentObjectId}`, {})
 }

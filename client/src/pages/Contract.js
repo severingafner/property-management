@@ -135,10 +135,6 @@ function Contract() {
   }
 
   const createObjectCallback = (m_payment) => {
-    const newPayment = {
-      amount: m_payment.amount,
-      date: new Date(m_payment.date).toISOString()
-    }
     setShowCreateForm(false);
       const payments = [...contract.payments , m_payment];
       setContract({
