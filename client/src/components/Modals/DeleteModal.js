@@ -32,9 +32,9 @@ export default function DeleteModal({isOpen, onClose, onAction, name, activeObj,
 
   return (
     <SimpleModal isOpen={isOpen}
-      title={'Delete' + name}
+      title={'Delete ' + name}
       neg_text="Cancel" 
-      pos_text={'Delete' + name}
+      pos_text={'Delete ' + name}
       onClose={handleModalClose}
       onAction={handleModalAction}
       enabled={enabled}

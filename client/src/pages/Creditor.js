@@ -50,13 +50,6 @@ function Creditor() {
       <PageTitle>{creditor.prename} {creditor.name}</PageTitle>
       <SectionTitle>Creditor Data</SectionTitle>
       <CreditorForm creditor={creditor} callback={updateCreditorCallback} />
-      <div className="flex flex-wrap justify-between mb-4">
-        <SectionTitle>Bills</SectionTitle>
-          {/* <div>
-            <Button onClick={(e) => {e.preventDefault(); handleAction(null, 'createInvitation')}}>Invite Users</Button>
-          </div>
-          <ActionTable route="creditors" data={getTableData()} totalRows={totalResults} onAction={handleAction} onPageChange={handlePageChange} /> */}
-      </div>
     </>
   )
 }
